@@ -8,3 +8,5 @@ __pycache__/
 *.local.json
 basalt/runtime/
 basalt/downloads/
+sglang/models/
+sglang/cache/

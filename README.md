@@ -1,147 +1,73 @@
-# Inkling 2 Mini on RTX 5090
+# Inkling 2 Mini on one RTX 5090
 
-Run [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) on one RTX 5090 with 128k context, Vision and two concurrent requests. **For generation speed, start with the [recommended Basalt setup](basalt/README.md)**; this repository also provides the SGLang + DFlash2 configuration below. Both configurations can use [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). Both checkpoints have been tested on Basalt; the SGLang measurements below used the uncensored checkpoint. Checkpoints are downloaded separately and are not included in this repository.
+**370 tok/s conversation · 321 tok/s prose · 706 tok/s structured JSON** on one RTX 5090, using Basalt and the uncensored checkpoint. These are means of two single-sequence runs of Basalt's standard engine fixtures, measured **2026-11-25**. The 8,192-token JSON fixture is highly predictable; it is not a typical chat result. Vision and parallel requests were tested separately. [Raw results and method](benchmarks/basalt/README.md#basalt-standard-engine-benchmark).
 
-**Results and configuration verified on 2026-11-25.** Hardware, software and model versions are recorded with each result.
+The recommended configuration is **Basalt 0.5.7 + DSpark + FP8 KV**, with Vision, tool calling and **two slots configured for 128k tokens each**, including output. We tested both [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) and [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). Basalt rounds dense projections to Q8_0; results can differ from the original checkpoint. These tests do not establish broad quality equivalence or a global speed record.
 
-## Configurations tested — 2026-11-25
+## Get started
 
-These measurements are specific to one RTX 5090 and the linked workloads; output contents and measurement methods differ. See the linked reports before comparing numbers.
-
-| Configuration | Result and decision |
-| --- | --- |
-| Basalt 0.5.7, DSpark, FP8 KV, 2 × 128k, Vision | **Recommended for generation speed.** On the uncensored pack, single-sequence engine fixtures averaged 370 tok/s conversation, 706 structured JSON and 321 prose. Two long requests, Vision and tools passed narrow checks. [Details](benchmarks/basalt/README.md) |
-| Basalt FP16 KV | The same short chat fixture measured 377 vs 388 estimated decode tok/s for FP8; long Vision and concurrent retrieval passed. FP8 remains the speed choice. [Details](benchmarks/basalt/README.md#fp8-versus-fp16-kv-cache) |
-| Basalt DSpark caps 4, 6, 8 | No reliable gain over default 8 in the short single- and two-request trials. [Details](benchmarks/basalt/README.md#dspark-speculation-cap-experiment) |
-| SGLang + DFlash2, BF16 KV, 2 shared-cache slots, Vision | Alternative retaining the original checkpoint's dense weights. Approximately 285 estimated decode tok/s on one short chat fixture vs 388 with Basalt; results depend on different generated text and numerical precision. [Details](benchmarks/basalt/README.md#identical-chat-prompts-natural-eos) |
-| SGLang DFlash2 widths 6, 8, 12 | Width 8 led on tested prose and code; width 12 led only on a repetitive synthetic fixture. [Details](#dflash2-verification-width-experiment-2026-11-25) |
-| SGLang, 3 slots | Ran short and medium synthetic requests; not qualified for sustained Vision use. Shared KV limits simultaneous long contexts. [Context results](benchmarks/results/dflash2-rtx5090-c3-experimental-2026-11-25.json) |
-
-The structured JSON fixture is unusually predictable and is **not** a general chat speed. Basalt quantizes dense projections to Q8_0 and uses FP8 KV; SGLang's BF16 KV setup has different numerical behavior. Both the official and uncensored checkpoints passed the documented Basalt checks, which are not exhaustive quality evaluations.
-
-## SGLang alternative: hardware and requirements
-
-- NVIDIA RTX 5090 with 32 GB VRAM, Linux, NVIDIA driver and NVIDIA Container Toolkit configured for Docker.
-- Docker with Compose and GPU access; roughly 20 GB for the model plus space for the image and caches. The deployed container image is large (about 56 GB before layer sharing).
-- A free GPU: the tested server reserves about 31 GB of VRAM. Stop other GPU inference servers before launching it.
-- Python with a recent `huggingface_hub` CLI for downloading the checkpoint and the ~1 GB DFlash2 draft.
-
-This is a setup for an RTX 5090, not a guarantee that the same flags work on other GPUs. The SGLang base image is pinned to the digest tested on 2026-11-21; the Dockerfile applies the [model-specific DFlash2 compatibility patch](https://huggingface.co/incoai/Inkling-2-Mini-DFlash2/blob/4f9088ea66c21f2b99ed657d1941c306b03e84d2/sglang_inkling_dflash2.py) from the pinned draft revision. The model uses NVFP4 and MXFP8 experts; the KV cache is BF16.
-
-## SGLang quick start
+1. Install Linux, the NVIDIA driver, NVIDIA Container Toolkit and Docker Compose; provide an RTX 5090 with 32 GB VRAM.
+2. Follow the **[Basalt installation guide](basalt/README.md)** to download the verified release and official converted model, or convert a checkpoint you already have. Model files and runtime are not stored in Git.
+3. From this repository's root, start the server and make a request:
 
 ```bash
-python -m pip install --user -U huggingface_hub
-mkdir -p models/Inkling-2-Mini cache/sglang
-hf download thinkingmachines/Inkling-2-Mini \
-  --local-dir models/Inkling-2-Mini
-hf download incoai/Inkling-2-Mini-DFlash2 \
-  --revision 4f9088ea66c21f2b99ed657d1941c306b03e84d2 \
-  --exclude "assets/*" --local-dir models/Inkling-2-Mini-DFlash2
-
-docker compose up -d --build
-docker compose logs -f
-```
-
-The first start may take several minutes while GPU kernels and CUDA graphs are compiled. To reuse an existing checkpoint, set `MODEL_DIR` to its absolute path before starting. `DRAFT_DIR` selects the DFlash2 draft directory and `CACHE_DIR` selects the persistent SGLang cache directory. Neither the checkpoint nor the cache is tracked by Git.
-
-To use the uncensored checkpoint instead, download it and select its directory before starting:
-
-```bash
-hf download OpenUncensored/Inkling-2-Mini-Uncensored \
-  --local-dir models/Inkling-2-Mini-Uncensored
-export MODEL_DIR="$(pwd)/models/Inkling-2-Mini-Uncensored"
-docker compose up -d
-```
-
-Check readiness and ask a question:
-
-```bash
+docker compose -f basalt/docker-compose.yml up -d
 curl -f http://127.0.0.1:6020/health
-curl http://127.0.0.1:6020/v1/chat/completions \
-  -H 'Content-Type: application/json' \
-  -d '{"model":"inkling","messages":[{"role":"user","content":"Hello!"}],"max_tokens":512}'
+curl http://127.0.0.1:6020/v1/chat/completions -H 'Content-Type: application/json' \
+  -d '{"model":"inkling","messages":[{"role":"user","content":"Hello!"}],"max_tokens":1024}'
 ```
 
-The API binds to **127.0.0.1** and has no authentication. It is intentionally only reachable from the host; for LAN access put an authenticated proxy in front of it. The proxy and its configuration are not part of this repository. `docker compose stop` stops the service; `docker compose up -d` starts it again. The container uses `restart: unless-stopped`.
+The unauthenticated API listens on localhost. For LAN access, put an authenticated proxy in front of it. Only one inference server should use the GPU and port at a time. [Setup, checksums and configuration](basalt/README.md).
 
-## Measured results
+## Measured generation speed
 
-Measurements on one RTX 5090 on 2026-11-21, with the pinned image and the **uncensored checkpoint**. Results depend on prompt, context, sampling, batching and hardware. Output token counts include reasoning tokens when applicable.
+All numbers below are from **2026-11-25**, one RTX 5090 and the uncensored checkpoint. They measure different workloads, so rows are not interchangeable. The model's reasoning tokens count toward output.
 
-| Measurement | Result | Method |
-| --- | --- | --- |
-| Earlier DSpark baseline | ~232 output tok/s | 1,024-token fixed-output test, three warm runs, 4.42 s each, concurrency 1 |
-| No speculative decoding | ~162 output tok/s | Same 1,024-token test, warm runs 6.30–6.34 s, concurrency 1 |
-| Two short requests | 2.93 s parallel vs 5.83 s sequential | Two identical 512-token outputs; synthetic, not an agent workload |
-| Long-context retrieval | 130,759 input tokens and 208 output tokens | Synthetic repeated filler and one embedded fact, correct result |
-| Long-context + vision | 130,225 input tokens including image tokens | Synthetic image and text fact recognized correctly |
+| Workload | Result | Measurement |
+| --- | ---: | --- |
+| Standard conversation | **370 tok/s** | Single sequence, engine decode; 1,200 tokens, 2 runs, temperature 0.6 |
+| Standard prose | **321 tok/s** | Single sequence, engine decode; 968 tokens, 2 runs, temperature 0.6 |
+| Repetitive structured JSON | **706 tok/s** | Single sequence, engine decode; 8,192-token cap, 2 runs, temperature 0 |
+| Short agent chat | **388 vs 285 tok/s** | Basalt vs SGLang estimated decode, median of 3, same prompt but different generated outputs |
+| Two short agent requests | **494 vs 469 tok/s** | Basalt vs SGLang combined output divided by whole batch wall time, median of 3 |
 
-In one later real-use log sample, prompt-processing batches of at least 512 tokens had a median of ~11,558 tok/s, and single-request generation samples a median of ~213 tok/s. These are sampled server throughput values, not complete-request benchmarks or guaranteed speeds. In another earlier observation, two active requests yielded ~351 output tok/s combined at the median; workloads differed. Full numerical test artifacts are in [`benchmarks/`](benchmarks/).
+[Full Basalt experiments](benchmarks/basalt/README.md) · [SGLang experiments](benchmarks/sglang/README.md) · [Raw JSON and scripts](benchmarks/)
 
-### DFlash2 context sweep (2026-11-25)
+The standard JSON fixture is especially easy for speculative decoding to predict. In a separate 24-record extraction test at temperature 0, the same prompt took **0.79 s with `response_format: json_object` vs 1.67 s when JSON was requested only in text**. Both returned the expected records in 3/3 single-request trials. JSON mode generated 611 tokens with no visible reasoning, versus 1,220 tokens with reasoning for prompt-only mode: shorter output is a major reason for the time difference. In this sample, strict `json_schema` and `json_object` were similarly fast for one request. Encoding the same input as JSON did not improve speed and used more prompt tokens. Results are task-specific; JSON syntax validation does not prove factual correctness. [Structured-output experiment](benchmarks/basalt/STRUCTURED_OUTPUT.md).
 
-Measured on the uncensored checkpoint, one RTX 5090, vision enabled, 128k limit, two server slots. The client submits fresh random prefixes with repetitive synthetic filler, temperature 0 and 512 forced output tokens. The first token time and batch wall time include prefill, network and queueing; output includes reasoning. Three batches per point. The server remained live during the runs; results are not quality evaluations.
+## Context and concurrency
 
-| Prompt per request | 1 request: batch time | 2 requests: batch time | 1 request: estimated TG | 2 requests: aggregate output / batch time |
-| ---: | ---: | ---: | ---: | ---: |
-| ~1k | 1.42 s | 1.91 s | 385 tok/s | 537 tok/s |
-| ~16k | 2.59 s | 4.48 s | 356 tok/s | 229 tok/s |
-| ~30k | 4.11 s | 7.13 s | 280 tok/s | 144 tok/s |
-| ~60k | 6.71 s | 12.79 s | 336 tok/s | 80 tok/s |
+The deployed Basalt sweep used repetitive synthetic input, randomized prefixes, up to 512 output tokens and three batches per point. First-to-end decode is an estimate; pair wall time includes prompt processing and client overhead. Outputs often ended before the cap.
 
-Estimated TG is output tokens divided by first-visible-chunk-to-end-of-stream time. Aggregate throughput is output tokens divided by wall time of the whole batch **including prefill**; these are different measurements. High TG on repetitive synthetic prompts should not be generalized to agent tasks. Full per-request measurements: [one request](benchmarks/results/dflash2-rtx5090-c1-2026-11-25.json) and [two requests](benchmarks/results/dflash2-rtx5090-c2-2026-11-25.json).
+| Input per request | 1 request: estimated decode | 2 requests: batch wall |
+| ---: | ---: | ---: |
+| ~1k | 405 tok/s | 1.85 s |
+| ~16k | 342 tok/s | 3.47 s |
+| ~30k | 324 tok/s | 5.20 s |
+| ~60k | 283 tok/s | 10.44 s |
 
-In an isolated three-slot experiment, three ~1k requests completed in 2.19 s and three ~30k requests in 9.38 s (medians of two batches). Production remains at two slots. See [agent guidance](AGENT_CONTEXT.md) for limits and the [experimental results](benchmarks/results/dflash2-rtx5090-c3-experimental-2026-11-25.json).
+A synthetic 130,214-token image-and-text retrieval and two concurrent ~60k retrievals passed, as did simple image, tool and streaming checks through a proxy. This is not a comprehensive quality or long-term stability test. More than two requests queue in the provided Basalt configuration. [Context data and tests](benchmarks/basalt/README.md#production-context-sweep--2026-11-25) · [Agent context and compaction guidance](docs/AGENT_CONTEXT.md).
 
-Reproduce with one or two simultaneous requests (creates load on the running server):
+## Other configurations tested
 
-```bash
-python benchmarks/benchmark_generation.py --concurrency 1 --iterations 3 --output-tokens 512
-python benchmarks/benchmark_generation.py --concurrency 2 --iterations 3 --output-tokens 512
+| Option | Finding |
+| --- | --- |
+| [Basalt FP16 KV](benchmarks/basalt/README.md#fp8-versus-fp16-kv-cache) | 377 vs 388 tok/s FP8 on one short chat fixture; both passed narrow long-context checks. |
+| [Basalt DSpark caps 4, 6 and 8](benchmarks/basalt/README.md#dspark-speculation-cap-experiment) | No reliable gain over default 8 in the short single and paired tests. |
+| [SGLang + DFlash2, BF16 KV](sglang/README.md) | Alternative with original dense weights; its 139,264-token KV pool is shared across two slots. The matched short chat measured 285 vs Basalt's 388 estimated decode tok/s. |
+| [SGLang DFlash2 widths 6, 8 and 12](benchmarks/sglang/README.md#dflash2-verification-width-experiment-2026-11-25) | Width 8 led on tested short prose and code; 12 led on a repetitive synthetic case. |
+| [SGLang three-slot experiment](benchmarks/sglang/README.md#dflash2-context-sweep-2026-11-25) | Short and medium synthetic requests ran; shared KV and Vision stability need further testing. |
+
+The [Basalt report](benchmarks/basalt/README.md) includes official and uncensored checkpoint results, exact settings, test limitations and raw data. See [SGLang benchmark details](benchmarks/sglang/README.md) for its historical measurements. Speeds depend on workload, sampling, context, cache, batching, precision and hardware.
+
+## Repository layout
+
+```text
+basalt/                 recommended Docker Compose and setup guide
+sglang/                 alternative Dockerfile, Compose, patch and guide
+benchmarks/basalt/      Basalt and cross-engine tests, results and reports
+benchmarks/sglang/      SGLang tests, results and reports
+docs/                   agent context and compaction guidance
 ```
 
-Reproduce the fixed-output and synthetic retrieval checks against a running server:
-
-```bash
-python benchmarks/measure_speed.py dspark
-python benchmarks/test_long_context.py 30000 256
-```
-
-The speed script forces 1,024 output tokens and writes a local, ignored results file. The context script uses repetitive synthetic filler and writes its result to a separate ignored file. These tests create inference load; run them when the server is idle.
-
-See [Agent context and compression recommendations](AGENT_CONTEXT.md) for suggested budgets and their limitations.
-
-### DFlash2 verification width experiment (2026-11-25)
-
-On the same RTX 5090 and uncensored checkpoint, the pinned DFlash2 build was tested with verification widths 6, 8 and 12. Vision, two server slots and the 131,072-token limit remained configured. Each short-task figure below is the median of three greedy `/generate` requests, each forced to emit 512 tokens. Rates divide output tokens by complete request time, including short-prompt prefill and HTTP overhead; they are not pure GPU decode rates. The two-request figure is one simultaneous batch. The 16k case is highly repetitive synthetic text, with a warm cached prefix for the median, and is not representative agent performance.
-
-| Width | Prose | Code | Two short requests combined | Repetitive 16k, warm |
-| ---: | ---: | ---: | ---: | ---: |
-| 6 | 232 tok/s | 267 tok/s | 433 tok/s | 442 tok/s |
-| 8 (default) | 262 tok/s | 292 tok/s | 453 tok/s | 640 tok/s |
-| 12 | 240 tok/s | 265 tok/s | 390 tok/s | 706 tok/s |
-
-Width 8 remains the default: width 12 improved this artificial repetitive case but slowed the realistic short examples. These few prompts do not establish an overall optimum. The greedy serial output hashes match between widths on these three fixtures; concurrent hashes varied, so this is not a comprehensive correctness comparison. Raw results: [6](benchmarks/results/dflash2-width6-2026-11-25.json), [8](benchmarks/results/dflash2-width8-2026-11-25.json), [12](benchmarks/results/dflash2-width12-2026-11-25.json), plus context sweeps for [6](benchmarks/results/dflash2-width6-context-2026-11-25.json) and [12](benchmarks/results/dflash2-width12-context-2026-11-25.json). Context-sweep prompts have randomized prefixes, so their output and decode rates are not matched across runs. Reproduce short tasks with `python benchmarks/measure_dflash_width.py http://127.0.0.1:6020 width8` against each separately configured server. Changing width requires a server restart and can interrupt requests.
-
-A separate [sampling check](benchmarks/results/dflash2-sampling-2026-11-25.json) on three short raw prompts produced median rates of 261/380/252 tok/s at temperature 0 and 232/249/244 tok/s at temperature 0.7 (prose/code/analysis, respectively). Three seeds per task and temperature; the 512-token cap was reached in these runs. Output tokens divided by complete request time, so the figures include prefill and are not a quality benchmark. Run `python benchmarks/measure_sampling.py` to reproduce against port 6020.
-
-### Basalt standard benchmark (RTX 5090)
-
-On the converted uncensored checkpoint, Basalt's standard single-sequence engine benchmark measured a two-run mean of **370 tok/s conversation, 706 tok/s structured JSON and 321 tok/s prose**. JSON is a highly predictable 8,192-token fixture, not typical chat; this benchmark does not exercise Vision or concurrent requests. See the [full benchmark and reproduction command](benchmarks/basalt/README.md#basalt-standard-engine-benchmark) and the separate concurrent and Vision tests.
-
-### Basalt and SGLang comparison
-
-A separate [Basalt experiment](benchmarks/basalt/README.md) converted the uncensored checkpoint, enabled Vision and two 128k slots, and tested one and two requests. One short chat prompt showed approximately 388 vs 285 estimated decode tok/s for Basalt vs this SGLang setup; paired output over batch time was approximately 494 vs 469 tok/s. The engines use different drafters and numerical precision, and the few requests do not establish equal quality or a general speedup. The recommended Basalt setup is documented separately; the root Compose file remains the SGLang alternative.
-
-## Limits and tradeoffs
-
-- Context is 131,072 tokens **including output**. Model reasoning also consumes output tokens; set a sufficient `max_tokens` budget.
-- The tested setup allocated approximately 139,264 full-attention KV slots **shared across requests** and 6,912 sliding-window slots. Two independent 96k contexts cannot both fit in that pool at once; requests may wait or cached entries may be evicted. Shared prefixes can reduce memory use.
-- The long-context tests are narrow retrieval checks, not comprehensive long-context accuracy or sustained-load evaluations. Test on your own workloads.
-- BF16 KV is intentional: the image's FA4 FP8 path rejected SM120 in our MXFP8 KV attempt. The previous DSpark configuration rejected a shorter draft block; the current DFlash2 draft uses its separate 2,048-token ring. These observations apply to the pinned build, not necessarily newer releases.
-- Vision and tools are enabled in the server. Multimodal long-context and a simple read/repair/test tool-call sequence were checked with the uncensored checkpoint.
-
-## Credits
-
-Model: [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini); optional variant: [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). Server and day-zero image: [SGLang](https://github.com/sgl-project/sglang). Model licensing is described in its Hugging Face repository.
+Model weights, runtime files and local caches are ignored by Git. Basalt is from [jesdga95/basalt](https://github.com/jesdga95/basalt); SGLang and its model-specific DFlash2 patch are credited in the [alternative guide](sglang/README.md).
