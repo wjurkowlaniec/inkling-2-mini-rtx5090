@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Streaming TTFT and decode benchmark, adapted from local-models/benchmark_generation.py.
 
-Uses SGLang /tokenize, avoiding a local tokenizer dependency. Fresh random prompt
+Uses Basalt /tokenize, avoiding a local tokenizer dependency. Fresh random prompt
 prefixes prevent prefix-cache reuse across trials. Times include network and queueing.
 """
 import argparse

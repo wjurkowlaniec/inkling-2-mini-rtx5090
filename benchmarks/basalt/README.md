@@ -127,3 +127,21 @@ The [Basalt pack converted from the official Thinking Machines checkpoint](https
 | PP 65k setting | 14,583 tok/s | 14,558 tok/s |
 
 These speed figures come from generated content that can differ between checkpoints. The JSON fixture is unusually predictable. The six short agent tasks passed limited checks both singly and in pairs. Through the existing authenticated proxy, an image, a tool round-trip with streamed answer, and two simultaneous streams passed. A synthetic image-and-text request with 130,214 input tokens returned its correct marker and image details; two separate 60,038-token requests returned their keys concurrently. These are narrow checks, not broad accuracy, Hermes-session or stability guarantees. Raw results: [standard](basalt-official-standard.json), [tasks one](basalt-official-agent-c1.json), [tasks two](basalt-official-agent-c2.json), [proxy](basalt-official-proxy-results.json), [long](basalt-official-long-validation.json).
+
+## Production context sweep — 2026-11-25
+
+Repeated the original context-size benchmark, adapted for Basalt's tokenizer and streaming API, on the persistent uncensored server after deployment: `--parallel 2 --slot-full-context --vision dynamic --max-context 131072 --kv fp8`. Three batches per point, randomized prefixes with repetitive filler, temperature 0, up to 512 generated tokens, EOS allowed. Requests often ended before the cap, so durations are not directly comparable with SGLang's forced-512 sweep. This test did not send an image; image support was checked separately.
+
+| Input per request | 1 request: median estimated decode | 1 request: median wall | 2 requests: median batch wall | 2 requests: median combined output / batch wall |
+| ---: | ---: | ---: | ---: | ---: |
+| ~1k | 405 tok/s | 1.35 s | 1.85 s | 474 tok/s |
+| ~16k | 342 tok/s | 1.75 s | 3.47 s | 199 tok/s |
+| ~30k | 324 tok/s | 2.76 s | 5.20 s | 142 tok/s |
+| ~60k | 283 tok/s | 5.00 s | 10.44 s | 98 tok/s |
+
+The first-visible-to-end rate is an estimate, not kernel-only speed; batch throughput includes prefill, network and scheduling. Different response lengths and generated content affect each point. Results: [one request](basalt-production-context-c1.json), [two requests](basalt-production-context-c2.json). Reproduce against the active Basalt API:
+
+```bash
+python benchmarks/basalt/benchmark_basalt.py --url http://127.0.0.1:6020 --concurrency 1 --iterations 3 --results context-c1.json
+python benchmarks/basalt/benchmark_basalt.py --url http://127.0.0.1:6020 --concurrency 2 --iterations 3 --results context-c2.json
+```
