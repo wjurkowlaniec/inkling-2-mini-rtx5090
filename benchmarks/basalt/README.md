@@ -89,3 +89,27 @@ With FP16, one image plus 130,214 input tokens returned the right image details 
 ## Existing proxy compatibility smoke check
 
 On 2026-11-25, the repository's Basalt Compose file was temporarily run on the same localhost port as the existing local-models authenticated proxy backend. Through that proxy, a synthetic image was identified correctly; `get_weather` was called with Warsaw, followed by a tool response and a streamed final answer; and two independent streamed requests completed concurrently with their respective identifiers. [Result summary](proxy-smoke-results.json). The proxy and credentials are specific to the test host and are not included here. This validates a few OpenAI-compatible flows, not a complete Windows Hermes session, production resilience, or behavior on all tool schemas. The original SGLang server was restored after the check.
+
+## Basalt standard engine benchmark
+
+Ran the official `basalt-bench` v0.5.7 Inkling fixtures on the converted **OpenUncensored** pack, one RTX 5090, FP8 KV, max context 131,072, DSpark default, seed 42, two repetitions on 2026-11-25. GPU power limit was 575 W. These are single-sequence engine measurements, not two simultaneous API requests; the benchmark does not exercise Vision. The separate server tests above cover Vision and two slots. Generation figures use the engine's decode time; PP figures use its prefill time and the uncached tokens it actually processed.
+
+| Fixture | Output tokens per repetition | Run 1 | Run 2 | Mean |
+| --- | ---: | ---: | ---: | ---: |
+| Conversation | 1,200 | 363.9 tok/s | 375.8 tok/s | 369.8 tok/s |
+| Structured JSON | 8,192 | 703.8 tok/s | 709.2 tok/s | 706.5 tok/s |
+| Prose | 968 | 321.1 tok/s | 321.2 tok/s | 321.2 tok/s |
+| Prompt, 16k setting | 15,810 newly read | 19,210 tok/s | 19,127 tok/s | 19,168 tok/s |
+| Prompt, 65k setting | 63,189 newly read | 14,574 tok/s | 14,541 tok/s | 14,558 tok/s |
+
+The JSON fixture is highly predictable and reaches its 8,192-token cap; its throughput should not be presented as ordinary chat speed. Conversation and prose use temperature 0.6; JSON uses temperature 0. Prompt fixture lengths are the actual newly read token counts, which differ from requested setting names. These two runs are not a broad model quality benchmark. The JSON `lossy` engine-flags field does not account for conversion of dense projections to Q8_0 or FP8 KV: those precision changes are present as described above. Full per-run measurements and hardware metadata: [basalt-standard-2026-11-25.json](basalt-standard-2026-11-25.json).
+
+To reproduce with the official Linux archive and a converted model, use the correct Inkling fixture directory:
+
+```bash
+/path/to/basalt-v0.5.7-linux-x64/bin/basalt-bench \
+  --model /path/to/inkling.basalt \
+  --fixtures /path/to/basalt-v0.5.7-linux-x64/data/bench/inkling2 \
+  -t conv,struct,prose -p 16384,65536 -r 2 --seed 42 -o json \
+  -- --max-context 131072 --kv fp8 > basalt-benchmark.json
+```

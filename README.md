@@ -109,6 +109,10 @@ Width 8 remains the default: width 12 improved this artificial repetitive case b
 
 A separate [sampling check](benchmarks/results/dflash2-sampling-2026-11-25.json) on three short raw prompts produced median rates of 261/380/252 tok/s at temperature 0 and 232/249/244 tok/s at temperature 0.7 (prose/code/analysis, respectively). Three seeds per task and temperature; the 512-token cap was reached in these runs. Output tokens divided by complete request time, so the figures include prefill and are not a quality benchmark. Run `python benchmarks/measure_sampling.py` to reproduce against port 6020.
 
+### Basalt standard benchmark (RTX 5090)
+
+On the converted uncensored checkpoint, Basalt's standard single-sequence engine benchmark measured a two-run mean of **370 tok/s conversation, 706 tok/s structured JSON and 321 tok/s prose**. JSON is a highly predictable 8,192-token fixture, not typical chat; this benchmark does not exercise Vision or concurrent requests. See the [full benchmark and reproduction command](benchmarks/basalt/README.md#basalt-standard-engine-benchmark) and the separate concurrent and Vision tests.
+
 ### Experimental Basalt comparison
 
 A separate [Basalt experiment](benchmarks/basalt/README.md) converted the uncensored checkpoint, enabled Vision and two 128k slots, and tested one and two requests. One short chat prompt showed approximately 388 vs 285 estimated decode tok/s for Basalt vs this SGLang setup; paired output over batch time was approximately 494 vs 469 tok/s. The engines use different drafters and numerical precision, and the few requests do not establish equal quality or a general speedup. The recommended Basalt setup is documented separately; the root Compose file remains the SGLang alternative.
