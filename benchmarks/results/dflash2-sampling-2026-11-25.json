@@ -1,0 +1,270 @@
+{
+  "method": "Raw /generate; output tokens / total request time, including prefill; three trials; EOS allowed; no forced minimum. Independent repeated requests may hit prefix cache.",
+  "prompts": {
+    "prose": "Explain the tradeoffs between message queues and direct HTTP calls for a small engineering team. Include practical examples.\n\n",
+    "code": "Write a Python function that implements a thread-safe LRU cache with tests and explain edge cases.\n\n",
+    "analysis": "Compare the costs and benefits of PostgreSQL indexes for a table with a million records and frequent writes. Give a specific example.\n\n"
+  },
+  "results": [
+    {
+      "temperature": 0,
+      "task": "prose",
+      "sampling_seed": 1200,
+      "elapsed_s": 1.9675,
+      "prompt_tokens": 24,
+      "output_tokens": 512,
+      "output_per_total_s": 260.23,
+      "accept_length": 2.942528735632184,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0,
+      "task": "prose",
+      "sampling_seed": 1201,
+      "elapsed_s": 1.9623,
+      "prompt_tokens": 24,
+      "output_tokens": 512,
+      "output_per_total_s": 260.92,
+      "accept_length": 2.942528735632184,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0,
+      "task": "prose",
+      "sampling_seed": 1202,
+      "elapsed_s": 1.9612,
+      "prompt_tokens": 24,
+      "output_tokens": 512,
+      "output_per_total_s": 261.07,
+      "accept_length": 2.942528735632184,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0,
+      "task": "code",
+      "sampling_seed": 1200,
+      "elapsed_s": 1.3912,
+      "prompt_tokens": 21,
+      "output_tokens": 512,
+      "output_per_total_s": 368.03,
+      "accept_length": 4.3760683760683765,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0,
+      "task": "code",
+      "sampling_seed": 1201,
+      "elapsed_s": 1.3484,
+      "prompt_tokens": 21,
+      "output_tokens": 512,
+      "output_per_total_s": 379.72,
+      "accept_length": 4.3760683760683765,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0,
+      "task": "code",
+      "sampling_seed": 1202,
+      "elapsed_s": 1.3481,
+      "prompt_tokens": 21,
+      "output_tokens": 512,
+      "output_per_total_s": 379.79,
+      "accept_length": 4.3760683760683765,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0,
+      "task": "analysis",
+      "sampling_seed": 1200,
+      "elapsed_s": 2.0283,
+      "prompt_tokens": 26,
+      "output_tokens": 512,
+      "output_per_total_s": 252.43,
+      "accept_length": 2.8603351955307263,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0,
+      "task": "analysis",
+      "sampling_seed": 1201,
+      "elapsed_s": 2.0343,
+      "prompt_tokens": 26,
+      "output_tokens": 512,
+      "output_per_total_s": 251.68,
+      "accept_length": 2.8603351955307263,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0,
+      "task": "analysis",
+      "sampling_seed": 1202,
+      "elapsed_s": 2.0332,
+      "prompt_tokens": 26,
+      "output_tokens": 512,
+      "output_per_total_s": 251.82,
+      "accept_length": 2.8603351955307263,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0.7,
+      "task": "prose",
+      "sampling_seed": 1200,
+      "elapsed_s": 1.6334,
+      "prompt_tokens": 24,
+      "output_tokens": 512,
+      "output_per_total_s": 313.46,
+      "accept_length": 3.6056338028169015,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0.7,
+      "task": "prose",
+      "sampling_seed": 1201,
+      "elapsed_s": 2.3989,
+      "prompt_tokens": 24,
+      "output_tokens": 512,
+      "output_per_total_s": 213.43,
+      "accept_length": 2.392523364485981,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0.7,
+      "task": "prose",
+      "sampling_seed": 1202,
+      "elapsed_s": 2.205,
+      "prompt_tokens": 24,
+      "output_tokens": 512,
+      "output_per_total_s": 232.2,
+      "accept_length": 2.6122448979591835,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0.7,
+      "task": "code",
+      "sampling_seed": 1200,
+      "elapsed_s": 2.1549,
+      "prompt_tokens": 21,
+      "output_tokens": 512,
+      "output_per_total_s": 237.59,
+      "accept_length": 2.6528497409326426,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0.7,
+      "task": "code",
+      "sampling_seed": 1201,
+      "elapsed_s": 2.0522,
+      "prompt_tokens": 21,
+      "output_tokens": 512,
+      "output_per_total_s": 249.49,
+      "accept_length": 2.797814207650273,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0.7,
+      "task": "code",
+      "sampling_seed": 1202,
+      "elapsed_s": 1.4764,
+      "prompt_tokens": 21,
+      "output_tokens": 512,
+      "output_per_total_s": 346.79,
+      "accept_length": 4.063492063492063,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0.7,
+      "task": "analysis",
+      "sampling_seed": 1200,
+      "elapsed_s": 2.242,
+      "prompt_tokens": 26,
+      "output_tokens": 512,
+      "output_per_total_s": 228.36,
+      "accept_length": 2.6122448979591835,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0.7,
+      "task": "analysis",
+      "sampling_seed": 1201,
+      "elapsed_s": 2.1026,
+      "prompt_tokens": 26,
+      "output_tokens": 512,
+      "output_per_total_s": 243.51,
+      "accept_length": 2.782608695652174,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    },
+    {
+      "temperature": 0.7,
+      "task": "analysis",
+      "sampling_seed": 1202,
+      "elapsed_s": 1.9517,
+      "prompt_tokens": 26,
+      "output_tokens": 512,
+      "output_per_total_s": 262.34,
+      "accept_length": 3.011764705882353,
+      "finish_reason": {
+        "type": "length",
+        "length": 512
+      }
+    }
+  ],
+  "summary": {
+    "prose-temp-0": 260.92,
+    "code-temp-0": 379.72,
+    "analysis-temp-0": 251.82,
+    "prose-temp-0.7": 232.2,
+    "code-temp-0.7": 249.49,
+    "analysis-temp-0.7": 243.51
+  }
+}

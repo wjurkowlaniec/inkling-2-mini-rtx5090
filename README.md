@@ -95,6 +95,20 @@ The speed script forces 1,024 output tokens and writes a local, ignored results 
 
 See [Agent context and compression recommendations](AGENT_CONTEXT.md) for suggested budgets and their limitations.
 
+### DFlash2 verification width experiment (2026-11-25)
+
+On the same RTX 5090 and uncensored checkpoint, the pinned DFlash2 build was tested with verification widths 6, 8 and 12. Vision, two server slots and the 131,072-token limit remained configured. Each short-task figure below is the median of three greedy `/generate` requests, each forced to emit 512 tokens. Rates divide output tokens by complete request time, including short-prompt prefill and HTTP overhead; they are not pure GPU decode rates. The two-request figure is one simultaneous batch. The 16k case is highly repetitive synthetic text, with a warm cached prefix for the median, and is not representative agent performance.
+
+| Width | Prose | Code | Two short requests combined | Repetitive 16k, warm |
+| ---: | ---: | ---: | ---: | ---: |
+| 6 | 232 tok/s | 267 tok/s | 433 tok/s | 442 tok/s |
+| 8 (default) | 262 tok/s | 292 tok/s | 453 tok/s | 640 tok/s |
+| 12 | 240 tok/s | 265 tok/s | 390 tok/s | 706 tok/s |
+
+Width 8 remains the default: width 12 improved this artificial repetitive case but slowed the realistic short examples. These few prompts do not establish an overall optimum. The greedy serial output hashes match between widths on these three fixtures; concurrent hashes varied, so this is not a comprehensive correctness comparison. Raw results: [6](benchmarks/results/dflash2-width6-2026-11-25.json), [8](benchmarks/results/dflash2-width8-2026-11-25.json), [12](benchmarks/results/dflash2-width12-2026-11-25.json), plus context sweeps for [6](benchmarks/results/dflash2-width6-context-2026-11-25.json) and [12](benchmarks/results/dflash2-width12-context-2026-11-25.json). Context-sweep prompts have randomized prefixes, so their output and decode rates are not matched across runs. Reproduce short tasks with `python benchmarks/measure_dflash_width.py http://127.0.0.1:6020 width8` against each separately configured server. Changing width requires a server restart and can interrupt requests.
+
+A separate [sampling check](benchmarks/results/dflash2-sampling-2026-11-25.json) on three short raw prompts produced median rates of 261/380/252 tok/s at temperature 0 and 232/249/244 tok/s at temperature 0.7 (prose/code/analysis, respectively). Three seeds per task and temperature; the 512-token cap was reached in these runs. Output tokens divided by complete request time, so the figures include prefill and are not a quality benchmark. Run `python benchmarks/measure_sampling.py` to reproduce against port 6020.
+
 ## Limits and tradeoffs
 
 - Context is 131,072 tokens **including output**. Model reasoning also consumes output tokens; set a sufficient `max_tokens` budget.
