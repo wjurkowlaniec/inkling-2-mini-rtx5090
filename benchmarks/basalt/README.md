@@ -66,3 +66,16 @@ Short answers are sensitive to first-chunk and stream-end timing and showed mixe
 python benchmarks/basalt/agent-workload.py --url http://127.0.0.1:6020 --concurrency 1 --output tasks-c1.json
 python benchmarks/basalt/agent-workload.py --url http://127.0.0.1:6020 --concurrency 2 --output tasks-c2.json
 ```
+
+## DSpark speculation cap experiment
+
+On the same converted uncensored pack with `--parallel 2 --slot-full-context --max-context 131072 --kv fp8 --vision dynamic`, we varied the Basalt `--spec` cap in order 8, 4, 6, 8 on 2026-11-25. Each server ran the same `compare_chat.py` workload: three single requests and then three pairs, each request capped at 1,024 output tokens and temperature 0. The first single request after each restart included roughly 2.3 seconds of model-load wait, so the first-to-end estimate excludes that wait. Two later single requests had a cached 48-token prompt prefix. The greedy single-request output text matched across these four runs.
+
+| Spec cap | Single request: median estimated decode | Two requests: median combined output / batch wall |
+| ---: | ---: | ---: |
+| 8, first control | 388.68 tok/s | 491.22 tok/s |
+| 4 | 384.04 tok/s | 500.23 tok/s |
+| 6 | 387.80 tok/s | 492.88 tok/s |
+| 8, final control | 388.06 tok/s | 490.93 tok/s |
+
+The two-request figure includes prompt processing and differs from the single-request decode estimate. The roughly 1.9% advantage of cap 4 on the pair is from only three batches of one prompt pair and may be scheduling or run variation; it is not enough to recommend changing the default. This is not a broad sweep of tasks or long contexts, and the responses reached their output cap. Raw data: [8 first, one](spec-8a-c1.json), [8 first, two](spec-8a-c2.json), [4, one](spec-4-c1.json), [4, two](spec-4-c2.json), [6, one](spec-6-c1.json), [6, two](spec-6-c2.json), [8 final, one](spec-8b-c1.json), [8 final, two](spec-8b-c2.json).

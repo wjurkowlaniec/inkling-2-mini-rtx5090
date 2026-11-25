@@ -1,0 +1,82 @@
+{
+  "url": "http://127.0.0.1:6022",
+  "concurrency": 1,
+  "method": "three repeats; chat completions; temperature 0; max 1024; EOS allowed; stream first visible token to stream end estimates; timings include client overhead and two-request overlap. Output may differ by engine.",
+  "batches": [
+    {
+      "requests": [
+        {
+          "ttft_s": 2.317,
+          "elapsed_s": 4.9754,
+          "output_tokens": 1024,
+          "output_per_total_s": 205.81,
+          "estimated_decode_tok_s": 385.2,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "completion_tokens": 1024,
+            "total_tokens": 1073,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue. Need explain retries, idempotency, DLQ, monitoring, trade-offs. Need produce final answer only. Need craft comprehensive but not too long. Include architecture, components, flow, code-ish examples, failure modes, trade-offs. Ensure accuracy: at-least-once vs exactly-once, idempotency keys, visibility timeouts, ack/nack, backoff, DLQ, monitoring metrics, capacity, ordering, scaling, security, schema evolution. Provide practical checklist. Mention exactly-once is hard; use idempotent consumers and dedup. Mention queue vs stream. Mention transactional outbox. Mention poison messages. Mention backpressure. Mention retention and replay. Mention testing. Keep structured.A reliable asynchronous job queue is not just \u201ca list of tasks.\u201d It is a small distributed system with delivery semantics, failure handling, observability, and operational controls. The goal is usually **at-least-once delivery** plus **idempotent processing**, not magical exactly-once execution.\n\n## 1. Core architecture\n\nA typical design:\n\n1. **Producer** creates a job and enqueues it.\n2. **Queue** stores the job durably.\n3. **Worker** receives/leases the job.\n4. **Worker** processes the job.\n5. **Worker** acknowledges success or reports failure.\n6. **Queue** retries, dead-letters, or discards based on policy.\n7. **Monitoring** tracks lag, failures, latency, and worker health.\n\nExample flow:\n\n```text\nAPI/service\n   -> outbox/event store\n   -> queue\n   -> worker pool\n   -> database/external API\n   -> ack / retry / DLQ\n```\n\nA key reliability pattern is the **transactional outbox**: when your service writes business data, it also writes an \u201cevent/job\u201d record in the same database transaction. A relay then publishes that job to the queue. This avoids the classic bug where the database commit succeeds but the queue publish fails, or vice versa.\n\n## 2. Delivery semantics\n\nBe explicit about what you guarantee.\n\n### At-most-once\nThe job is delivered once and may be lost if the worker crashes before processing.\n\nGood for:\n- Logging/metrics where loss is acceptable\n- Cheap, non-critical tasks\n\nRisk:\n- Lost work\n\n### At-least-once\nThe job may be delivered more than once.\n\nGood for:\n- Most business workflows\n- Emails, payments, sync jobs, reports\n\nRisk:\n- Duplicate processing unless consumers are idempotent\n\n### Exactly-once\nHard to achieve end-to-end. Many systems provide \u201ceffectively once\u201d by combining:\n- At-least-once delivery\n- Idempotent consumers\n- Deduplication keys\n- Transactional state updates\n\nPractical rule: **design for at-least-once delivery and make processing idempotent.**\n\n## 3. Job design\n\nA robust job should include:\n\n```json\n{\n  \"job_id\": \"uuid\",\n  \"type\": \"send_invoice_email\",\n  \"idempotency_key\": \"invoice-123-email-v1\",\n  \"payload\": {\n    \"invoice_id\": \"123\",\n    \"recipient\": \"customer@example.com\"\n  },\n  \"created_at\": \"2026-01-01T00:00:00Z\",\n  \"attempt\": 1,\n  \"max_attempts\": 5,\n  \"priority\": \"normal\",\n  \"correlation_id\": \"request-abc\",\n  \"trace_id\": \"trace-xyz\"\n}\n```\n\nImportant fields:\n\n- `job_id`: unique identifier for the job\n- `type`: determines which worker handles it\n- `idempotency_key`: prevents duplicate side effects\n- `payload`: minimal data needed; avoid huge blobs\n- `attempt`: current retry count\n- `max_attempts`: retry limit\n- `priority`: optional, but can cause head-of-line blocking\n- `correlation_id` / `trace_id`: for tracing and debugging\n\nAvoid putting large files directly in the queue. Store the file in object storage and put the reference in the job.\n\n## 4. Retries\n\nRetries handle transient failures: network timeouts, temporary API errors, database locks, rate limits.\n\n### Retry strategy\n\nUse",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 1
+        }
+      ],
+      "wall_s": 4.9754,
+      "aggregate_tok_s": 205.81
+    },
+    {
+      "requests": [
+        {
+          "ttft_s": 0.0158,
+          "elapsed_s": 2.6564,
+          "output_tokens": 1024,
+          "output_per_total_s": 385.49,
+          "estimated_decode_tok_s": 387.8,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "completion_tokens": 1024,
+            "total_tokens": 1073,
+            "prompt_tokens_details": {
+              "cached_tokens": 48
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue. Need explain retries, idempotency, DLQ, monitoring, trade-offs. Need produce final answer only. Need craft comprehensive but not too long. Include architecture, components, flow, code-ish examples, failure modes, trade-offs. Ensure accuracy: at-least-once vs exactly-once, idempotency keys, visibility timeouts, ack/nack, backoff, DLQ, monitoring metrics, capacity, ordering, scaling, security, schema evolution. Provide practical checklist. Mention exactly-once is hard; use idempotent consumers and dedup. Mention queue vs stream. Mention transactional outbox. Mention poison messages. Mention backpressure. Mention retention and replay. Mention testing. Keep structured.A reliable asynchronous job queue is not just \u201ca list of tasks.\u201d It is a small distributed system with delivery semantics, failure handling, observability, and operational controls. The goal is usually **at-least-once delivery** plus **idempotent processing**, not magical exactly-once execution.\n\n## 1. Core architecture\n\nA typical design:\n\n1. **Producer** creates a job and enqueues it.\n2. **Queue** stores the job durably.\n3. **Worker** receives/leases the job.\n4. **Worker** processes the job.\n5. **Worker** acknowledges success or reports failure.\n6. **Queue** retries, dead-letters, or discards based on policy.\n7. **Monitoring** tracks lag, failures, latency, and worker health.\n\nExample flow:\n\n```text\nAPI/service\n   -> outbox/event store\n   -> queue\n   -> worker pool\n   -> database/external API\n   -> ack / retry / DLQ\n```\n\nA key reliability pattern is the **transactional outbox**: when your service writes business data, it also writes an \u201cevent/job\u201d record in the same database transaction. A relay then publishes that job to the queue. This avoids the classic bug where the database commit succeeds but the queue publish fails, or vice versa.\n\n## 2. Delivery semantics\n\nBe explicit about what you guarantee.\n\n### At-most-once\nThe job is delivered once and may be lost if the worker crashes before processing.\n\nGood for:\n- Logging/metrics where loss is acceptable\n- Cheap, non-critical tasks\n\nRisk:\n- Lost work\n\n### At-least-once\nThe job may be delivered more than once.\n\nGood for:\n- Most business workflows\n- Emails, payments, sync jobs, reports\n\nRisk:\n- Duplicate processing unless consumers are idempotent\n\n### Exactly-once\nHard to achieve end-to-end. Many systems provide \u201ceffectively once\u201d by combining:\n- At-least-once delivery\n- Idempotent consumers\n- Deduplication keys\n- Transactional state updates\n\nPractical rule: **design for at-least-once delivery and make processing idempotent.**\n\n## 3. Job design\n\nA robust job should include:\n\n```json\n{\n  \"job_id\": \"uuid\",\n  \"type\": \"send_invoice_email\",\n  \"idempotency_key\": \"invoice-123-email-v1\",\n  \"payload\": {\n    \"invoice_id\": \"123\",\n    \"recipient\": \"customer@example.com\"\n  },\n  \"created_at\": \"2026-01-01T00:00:00Z\",\n  \"attempt\": 1,\n  \"max_attempts\": 5,\n  \"priority\": \"normal\",\n  \"correlation_id\": \"request-abc\",\n  \"trace_id\": \"trace-xyz\"\n}\n```\n\nImportant fields:\n\n- `job_id`: unique identifier for the job\n- `type`: determines which worker handles it\n- `idempotency_key`: prevents duplicate side effects\n- `payload`: minimal data needed; avoid huge blobs\n- `attempt`: current retry count\n- `max_attempts`: retry limit\n- `priority`: optional, but can cause head-of-line blocking\n- `correlation_id` / `trace_id`: for tracing and debugging\n\nAvoid putting large files directly in the queue. Store the file in object storage and put the reference in the job.\n\n## 4. Retries\n\nRetries handle transient failures: network timeouts, temporary API errors, database locks, rate limits.\n\n### Retry strategy\n\nUse",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 2
+        }
+      ],
+      "wall_s": 2.6564,
+      "aggregate_tok_s": 385.49
+    },
+    {
+      "requests": [
+        {
+          "ttft_s": 0.0159,
+          "elapsed_s": 2.6486,
+          "output_tokens": 1024,
+          "output_per_total_s": 386.61,
+          "estimated_decode_tok_s": 388.94,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "completion_tokens": 1024,
+            "total_tokens": 1073,
+            "prompt_tokens_details": {
+              "cached_tokens": 48
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue. Need explain retries, idempotency, DLQ, monitoring, trade-offs. Need produce final answer only. Need craft comprehensive but not too long. Include architecture, components, flow, code-ish examples, failure modes, trade-offs. Ensure accuracy: at-least-once vs exactly-once, idempotency keys, visibility timeouts, ack/nack, backoff, DLQ, monitoring metrics, capacity, ordering, scaling, security, schema evolution. Provide practical checklist. Mention exactly-once is hard; use idempotent consumers and dedup. Mention queue vs stream. Mention transactional outbox. Mention poison messages. Mention backpressure. Mention retention and replay. Mention testing. Keep structured.A reliable asynchronous job queue is not just \u201ca list of tasks.\u201d It is a small distributed system with delivery semantics, failure handling, observability, and operational controls. The goal is usually **at-least-once delivery** plus **idempotent processing**, not magical exactly-once execution.\n\n## 1. Core architecture\n\nA typical design:\n\n1. **Producer** creates a job and enqueues it.\n2. **Queue** stores the job durably.\n3. **Worker** receives/leases the job.\n4. **Worker** processes the job.\n5. **Worker** acknowledges success or reports failure.\n6. **Queue** retries, dead-letters, or discards based on policy.\n7. **Monitoring** tracks lag, failures, latency, and worker health.\n\nExample flow:\n\n```text\nAPI/service\n   -> outbox/event store\n   -> queue\n   -> worker pool\n   -> database/external API\n   -> ack / retry / DLQ\n```\n\nA key reliability pattern is the **transactional outbox**: when your service writes business data, it also writes an \u201cevent/job\u201d record in the same database transaction. A relay then publishes that job to the queue. This avoids the classic bug where the database commit succeeds but the queue publish fails, or vice versa.\n\n## 2. Delivery semantics\n\nBe explicit about what you guarantee.\n\n### At-most-once\nThe job is delivered once and may be lost if the worker crashes before processing.\n\nGood for:\n- Logging/metrics where loss is acceptable\n- Cheap, non-critical tasks\n\nRisk:\n- Lost work\n\n### At-least-once\nThe job may be delivered more than once.\n\nGood for:\n- Most business workflows\n- Emails, payments, sync jobs, reports\n\nRisk:\n- Duplicate processing unless consumers are idempotent\n\n### Exactly-once\nHard to achieve end-to-end. Many systems provide \u201ceffectively once\u201d by combining:\n- At-least-once delivery\n- Idempotent consumers\n- Deduplication keys\n- Transactional state updates\n\nPractical rule: **design for at-least-once delivery and make processing idempotent.**\n\n## 3. Job design\n\nA robust job should include:\n\n```json\n{\n  \"job_id\": \"uuid\",\n  \"type\": \"send_invoice_email\",\n  \"idempotency_key\": \"invoice-123-email-v1\",\n  \"payload\": {\n    \"invoice_id\": \"123\",\n    \"recipient\": \"customer@example.com\"\n  },\n  \"created_at\": \"2026-01-01T00:00:00Z\",\n  \"attempt\": 1,\n  \"max_attempts\": 5,\n  \"priority\": \"normal\",\n  \"correlation_id\": \"request-abc\",\n  \"trace_id\": \"trace-xyz\"\n}\n```\n\nImportant fields:\n\n- `job_id`: unique identifier for the job\n- `type`: determines which worker handles it\n- `idempotency_key`: prevents duplicate side effects\n- `payload`: minimal data needed; avoid huge blobs\n- `attempt`: current retry count\n- `max_attempts`: retry limit\n- `priority`: optional, but can cause head-of-line blocking\n- `correlation_id` / `trace_id`: for tracing and debugging\n\nAvoid putting large files directly in the queue. Store the file in object storage and put the reference in the job.\n\n## 4. Retries\n\nRetries handle transient failures: network timeouts, temporary API errors, database locks, rate limits.\n\n### Retry strategy\n\nUse",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 3
+        }
+      ],
+      "wall_s": 2.6486,
+      "aggregate_tok_s": 386.61
+    }
+  ]
+}
