@@ -1,0 +1,169 @@
+{
+  "url": "http://127.0.0.1:6020",
+  "concurrency": 2,
+  "method": "six public prompts, one run each, temperature 0, max 3072, EOS allowed; heuristic checks are not comprehensive quality tests. Estimated decode uses first visible chunk to end of stream; includes parser/HTTP delays.",
+  "batches": [
+    {
+      "wall_s": 2.8541,
+      "aggregate_tok_s": 422.2,
+      "requests": [
+        {
+          "task": "python",
+          "prompt": "Write a complete Python implementation of an in-memory TTL cache using time.monotonic, with get, set and eviction behavior. Explain complexity and include a short usage example.",
+          "ttft_s": 0.153,
+          "elapsed_s": 2.8539,
+          "output_tokens": 1105,
+          "estimated_decode_tok_s": 409.12,
+          "output_per_total_s": 387.19,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "```python\nimport time\nfrom typing import Any, Dict, Optional\n\n\nclass TTLCache:\n    def __init__(self, default_ttl: float = 60.0):\n        self._data: Dict[Any, tuple[Any, float]] = {}\n        self.default_ttl = default_ttl\n\n    def get(self, key: Any, default: Any = None) -> Any:\n        item = self._data.get(key)\n        if item is None:\n            return default\n        value, expires_at = item\n        if time.monotonic() >= expires_at:\n            del self._data[key]  # lazy eviction\n            return default\n        return value\n\n    def set(self, key: Any, value: Any, ttl: Optional[float] = None) -> None:\n        ttl = self.default_ttl if ttl is None else ttl\n        if ttl <= 0:\n            raise ValueError(\"ttl must be > 0\")\n        self._data[key] = (value, time.monotonic() + ttl)\n\n    def delete(self, key: Any) -> bool:\n        return self._data.pop(key, None) is not None\n\n    def clear_expired(self) -> int:\n        now = time.monotonic()\n        expired = [k for k, (_, exp) in self._data.items() if now >= exp]\n        for k in expired:\n            del self._data[k]\n        return len(expired)\n\n    def __len__(self) -> int:\n        return len(self._data)\n```\n\nUsage:\n\n```python\ncache = TTLCache(default_ttl=5)\n\ncache.set(\"user:1\", {\"name\": \"Ada\"}, ttl=10)\nprint(cache.get(\"user:1\"))   # {'name': 'Ada'}\ntime.sleep(11)\nprint(cache.get(\"user:1\", \"miss\"))  # miss\n```\n\nBehavior:\n- `set` stores `(value, expires_at)` where `expires_at = time.monotonic() + ttl`.\n- `get` returns the value if present and unexpired; otherwise it deletes the stale entry and returns the default.\n- Expired entries are evicted lazily on access; `clear_expired()` can be called periodically to reclaim memory eagerly.\n- `time.monotonic()` is used so wall-clock changes do not affect TTL.\n\nComplexity:\n- `get`: average O(1)\n- `set`: average O(1)\n- `delete`: average O(1)\n- `clear_expired`: O(n)\n- Space: O(n), where n is the number of stored entries\n\nNotes: this is not thread-safe by default; add a `threading.Lock` around `get`/`set`/`delete`/`clear_expired` if used across threads. It also does not enforce a maximum size; add an LRU/LFU eviction policy if you need bounded memory.",
+          "reasoning": "The user asks for a complete Python implementation of an in-memory TTL cache using time.monotonic, with get, set and eviction behavior. Explain complexity and include a short usage example. This is a benign coding request. Need produce final answer with code and explanation. Need ensure correctness.\n\nDesign: dict mapping key -> (value, expires_at). get(key): if missing return None (or default). If expired, delete and return None. set(key, value, ttl): store with expires_at = monotonic()+ttl. Eviction: lazy on get; optionally purge expired on set or explicit evict. Mention thread safety optional with lock. Complexity: get/set O(1) average, space O(n), eviction lazy O(1) per access; periodic purge O(n). Use time.monotonic to avoid wall-clock changes.\n\nNeed include complete implementation. Could include max_size? User didn't ask. Keep simple but robust. Mention default ttl. Use typing. Provide example.\n\nNeed be careful: time.monotonic returns float seconds. TTL must be positive; validate. Use Optional.\n\nLet's craft concise but complete. Include eviction behavior: expired entries removed on access; set overwrites; optional clear_expired. Complexity: average O(1), worst O(n) for clear_expired; memory O(n). Mention no global background thread.\n\nNeed final only.",
+          "usage": {
+            "prompt_tokens": 51,
+            "total_tokens": 1156,
+            "completion_tokens": 1105,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 336,
+            "completion_tokens_details": {
+              "reasoning_tokens": 336
+            }
+          }
+        },
+        {
+          "task": "reason",
+          "prompt": "A service processes 4800 jobs in 8 minutes at a constant rate. How many jobs in 15 minutes? Show the calculation and give the final integer.",
+          "ttft_s": 0.1533,
+          "elapsed_s": 0.3567,
+          "output_tokens": 100,
+          "estimated_decode_tok_s": 491.61,
+          "output_per_total_s": 280.36,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "Rate = 4800 jobs \u00f7 8 minutes = 600 jobs/minute  \nJobs in 15 minutes = 600 \u00d7 15 = 9000  \n\nFinal integer: 9000",
+          "reasoning": "The user wants a calculation. Rate = 4800 jobs / 8 min = 600 jobs/min. In 15 min: 600*15 = 9000 jobs. Need show calculation and final integer. Ensure no hidden trick. Provide concise.",
+          "usage": {
+            "prompt_tokens": 46,
+            "total_tokens": 146,
+            "completion_tokens": 100,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 57,
+            "completion_tokens_details": {
+              "reasoning_tokens": 57
+            }
+          }
+        }
+      ]
+    },
+    {
+      "wall_s": 2.6059,
+      "aggregate_tok_s": 394.5,
+      "requests": [
+        {
+          "task": "extract",
+          "prompt": "From this incident note extract the exact incident ID and affected component. Note: At 10:42 UTC, incident ZX-2481 affected the payments-worker after a deployment; search-api was healthy. Return a concise answer.",
+          "ttft_s": 0.1456,
+          "elapsed_s": 0.4356,
+          "output_tokens": 117,
+          "estimated_decode_tok_s": 403.51,
+          "output_per_total_s": 268.6,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "Incident ID: ZX-2481; affected component: payments-worker",
+          "reasoning": "The user wants extraction from incident note. Need answer concise. Need identify exact incident ID and affected component. Text: \"At 10:42 UTC, incident ZX-2481 affected the payments-worker after a deployment; search-api was healthy.\" Incident ID: ZX-2481. Affected component: payments-worker. Need ensure not search-api. Return concise. No extra. Since this is straightforward. Final only.",
+          "usage": {
+            "prompt_tokens": 62,
+            "total_tokens": 179,
+            "completion_tokens": 117,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 97,
+            "completion_tokens_details": {
+              "reasoning_tokens": 97
+            }
+          }
+        },
+        {
+          "task": "sql",
+          "prompt": "Write a PostgreSQL query for daily revenue in 2025 from orders(created_at timestamptz, amount numeric, status text), counting only paid orders and ordering by day. Briefly explain the timezone choice.",
+          "ttft_s": 0.1458,
+          "elapsed_s": 2.6059,
+          "output_tokens": 911,
+          "estimated_decode_tok_s": 370.32,
+          "output_per_total_s": 349.6,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "```sql\nSELECT (created_at AT TIME ZONE 'America/New_York')::date AS day,\n       SUM(amount) AS revenue\nFROM orders\nWHERE status = 'paid'\n  AND (created_at AT TIME ZONE 'America/New_York')::date >= DATE '2025-01-01'\n  AND (created_at AT TIME ZONE 'America/New_York')::date <  DATE '2026-01-01'\nGROUP BY 1\nORDER BY 1;\n```\n\nTimezone choice: `created_at` is `timestamptz`, so it is stored in UTC, but \u201cdaily revenue\u201d is usually a business-day concept. Bucketing with an explicit business timezone (e.g. `America/New_York`) makes days align with local sales/reporting and handles DST via the timezone database. Using an explicit zone avoids results changing with the session/server `timezone`. If you want UTC days instead, use `date_trunc('day', created_at)` and filter on UTC bounds.",
+          "reasoning": "The user asks for a PostgreSQL query for daily revenue in 2025 from orders(created_at timestamptz, amount numeric, status text), counting only paid orders and ordering by day. Briefly explain timezone choice.\n\nNeed answer with query and brief explanation. Need be careful: timestamptz stored in UTC; date_trunc('day', created_at) uses session timezone for bucketing. For business daily revenue, choose a business timezone (e.g., America/New_York) via AT TIME ZONE or date_trunc('day', created_at AT TIME ZONE 'America/New_York')? Need correct semantics.\n\nIn Postgres, timestamptz -> date_trunc('day', created_at) returns timestamptz? Actually date_trunc(text, timestamptz) returns timestamptz, bucketing in session timezone. To get local date: (created_at AT TIME ZONE 'America/New_York')::date gives local date (timestamp without tz). Then group by that. Sum amount. Filter status='paid' and created_at >= '2025-01-01' and < '2026-01-01'. Better filter by local date range or UTC range? If business day in local tz, filter local date between 2025-01-01 and 2025-12-31: (created_at AT TIME ZONE tz)::date >= '2025-01-01' and < '2026-01-01'. Or use created_at >= '2025-01-01+00' etc. Simpler: WHERE status='paid' AND created_at >= '2025-01-01T00:00:00Z' AND created_at < '2026-01-01T00:00:00Z'. But that counts UTC days, not local. Need explain.\n\nQuery:\nSELECT (created_at AT TIME ZONE 'America/New_York')::date AS day,\n       SUM(amount) AS revenue\nFROM orders\nWHERE status = 'paid'\n  AND (created_at AT TIME ZONE 'America/New_York')::date >= DATE '2025-01-01'\n  AND (created_at AT TIME ZONE 'America/New_York')::date < DATE '2026-01-01'\nGROUP BY 1\nORDER BY 1;\n\nCould use date_trunc('day', created_at AT TIME ZONE 'America/New_York')::date. Note AT TIME ZONE on timestamptz converts to timestamp in given zone; then date. Good.\n\nNeed mention set timezone: SET TIME ZONE or use explicit tz to avoid session dependence. Brief explanation: store UTC, bucket in business tz; explicit zone makes results reproducible and avoids server/session timezone drift; DST handled by tz database. Mention if you want UTC days, use date_trunc('day', created_at). Keep concise.\n\nNeed final only. Ensure no extra tool mentions.",
+          "usage": {
+            "prompt_tokens": 58,
+            "total_tokens": 969,
+            "completion_tokens": 911,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 668,
+            "completion_tokens_details": {
+              "reasoning_tokens": 668
+            }
+          }
+        }
+      ]
+    },
+    {
+      "wall_s": 6.4722,
+      "aggregate_tok_s": 312.26,
+      "requests": [
+        {
+          "task": "design",
+          "prompt": "Design an idempotent webhook handler with retries, an outbox, error monitoring, and safeguards against duplicate messages. Give concrete implementation steps.",
+          "ttft_s": 0.2165,
+          "elapsed_s": 6.4721,
+          "output_tokens": 1911,
+          "estimated_decode_tok_s": 305.48,
+          "output_per_total_s": 295.27,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "Design it as a \u201creceive \u2192 persist \u2192 process \u2192 publish\u201d pipeline, not as \u201creceive \u2192 process inline.\u201d\n\n## Target flow\n\n1. Webhook arrives at endpoint.\n2. Validate signature and basic shape.\n3. Store the event in an inbox/outbox table with a unique idempotency key.\n4. Return `2xx` quickly.\n5. Background worker processes the event.\n6. On success, mark processed and publish downstream effects via outbox.\n7. On failure, retry with backoff; after max attempts, move to dead-letter/error queue.\n\n## Core components\n\n- **Inbox table**: `webhook_events(id, provider, event_id, idempotency_key, payload, status, attempts, created_at, processed_at)`\n- **Outbox table**: `outbox_messages(id, aggregate_id, event_type, payload, status, created_at, published_at)`\n- **Unique constraint**: `(provider, event_id)` or `(provider, idempotency_key)`\n- **Worker**: polls inbox/outbox, processes with bounded retries\n- **Error monitoring**: logs, metrics, traces, alerts\n- **Dead-letter queue**: for poison messages\n\n## Implementation steps\n\n### 1. Define idempotency key\n\nUse the provider\u2019s event ID if available:\n\n```text\nidempotency_key = provider + \":\" + provider_event_id\n```\n\nIf no provider event ID exists, derive one from stable fields:\n\n```text\nidempotency_key = provider + \":\" + hash(event_type + stable_id + timestamp_bucket)\n```\n\nAvoid using only the request body hash if the same logical event can arrive with different formatting.\n\n### 2. Add unique constraint\n\nExample SQL:\n\n```sql\ncreate table webhook_events (\n  id uuid primary key,\n  provider text not null,\n  event_id text not null,\n  idempotency_key text not null unique,\n  payload jsonb not null,\n  status text not null default 'received',\n  attempts int not null default 0,\n  last_error text,\n  created_at timestamptz not null default now(),\n  processed_at timestamptz\n);\n```\n\nInsert with conflict handling:\n\n```sql\ninsert into webhook_events (id, provider, event_id, idempotency_key, payload)\nvalues (...)\non conflict (idempotency_key) do nothing;\n```\n\nIf the insert affects zero rows, the webhook is a duplicate. Return `200 OK` anyway.\n\n### 3. Return fast from the webhook endpoint\n\nDo not call third-party APIs or do heavy work synchronously.\n\n```text\nPOST /webhooks/provider\n- verify signature\n- parse payload\n- insert into webhook_events\n- return 200/202\n```\n\nUse `202 Accepted` if you want to signal async processing, but many providers expect `200`; check provider requirements.\n\n### 4. Process asynchronously\n\nWorker loop:\n\n```text\nfetch unprocessed webhook_events\nfor each event:\n  begin transaction\n    load event\n    if already processed: skip\n    apply business logic\n    insert outbox message(s)\n    mark event processed\n  commit\n  on error:\n    increment attempts\n    record error\n    schedule retry with backoff\n```\n\nUse a transaction so business state and outbox insert commit together.\n\n### 5. Use the outbox pattern\n\nDo not write to the database and then publish to a queue/broker in separate non-atomic steps.\n\nInstead:\n\n```text\ntransaction:\n  update domain table\n  insert outbox_message\ncommit\n```\n\nA separate publisher reads `outbox_messages` and sends to the broker. Mark published only after successful send.\n\nThis avoids the classic failure:\n\n```text\nDB updated, broker publish failed\n```\n\n### 6. Retry with backoff\n\nExample policy:\n\n```text\nattempt 1: immediate\nattempt 2: 30s\nattempt 3: 2m\nattempt 4: 10m\nattempt 5: 1h\nthen: dead-letter\n```\n\nUse exponential backoff with jitter:\n\n```text\ndelay = min(max_delay, base_delay * 2^attempt) + random_jitter\n```\n\nTrack:\n\n- `attempts`\n- `last_error`\n- `next_retry_at`\n- `status`\n\nDo not retry forever. Poison messages should go to a dead-letter queue.\n\n### 7. Make business operations idempotent too\n\nEven with inbox dedup, retries can happen after side effects. Make downstream operations safe to repeat.\n\nExamples:\n\n- Use unique constraints on domain records.\n- Use idempotency keys for external API calls.\n- Store processed external operation IDs.\n- Make \u201csend email\u201d, \u201ccharge card\u201d, \u201ccreate ticket\u201d, etc. check prior state before acting.\n\nExample:\n\n```text\nif ticket_exists(provider_event_id):\n  skip creation\nelse:\n  create ticket\n```\n\n### 8. Add duplicate safeguards\n\nUse multiple layers:\n\n- Provider event ID uniqueness\n- Idempotency key uniqueness\n- Domain-level uniqueness constraints\n- External API idempotency keys\n- Worker-level \u201calready processed\u201d checks\n- Optional request-level deduplication window for very fast retries\n\nDo not rely on only one layer.\n\n### 9. Add error monitoring\n\nEmit structured logs and metrics for every event:\n\n```text\nwebhook_received\nwebhook_duplicate\nwebhook_processed\nwebhook_failed\nwebhook_dead_lettered\noutbox_published\noutbox_failed\n```\n\nTrack:\n\n- Processing latency\n- Retry count\n- Failure rate by provider/event type\n- Dead-letter count\n- Outbox lag\n- Signature verification failures\n\nAlert on:\n\n- Sudden spike in failures\n- Dead-letter queue growth\n- Outbox backlog\n- Repeated signature failures\n- Worker downtime\n\n### 10. Add dead-letter handling\n\nWhen max retries are reached:\n\n```text\nstatus = 'dead_letter'\nlast_error = error message\nmove/copy to dead-letter queue\nalert on-call\n```\n\nProvide a manual replay endpoint:\n\n```text\nPOST /admin/webhooks/:id/replay\n```\n\nReplay should reset `status`, `attempts`, and `next_retry_at`, but keep the original event ID.\n\n### 11. Add signature verification\n\nBefore processing:\n\n- Verify provider signature\n- Reject invalid signatures with `401`/`403`\n- Log verification failures\n- Do not process unverified payloads\n\n### 12. Add observability around the outbox\n\nMonitor:\n\n- Number of unpublished outbox rows\n- Age of oldest unpublished row\n- Publish failures\n- Retry count for outbox publisher\n\nIf outbox lag grows, alert before users notice missing downstream events.\n\n## Minimal implementation checklist\n\n1. Add `webhook_events` table with unique idempotency key.\n2. Add `outbox_messages` table.\n3. Implement webhook endpoint:\n   - verify signature\n   - parse payload\n   - insert event\n   - return `200`/`202`\n4. Implement worker:\n   - fetch pending events\n   - process in transaction\n   - insert outbox rows\n   - mark processed\n5. Implement outbox publisher:\n   - read pending outbox rows\n   - publish to broker\n   - mark published\n6. Add retry/backoff and dead-letter queue.\n7. Add metrics/logs/traces.\n8. Add replay endpoint.\n9. Add tests for duplicates, retries, outbox failure, and signature failure.\n\n## Key rule\n\nThe webhook endpoint should only prove that the event was accepted and durably stored. All risky work\u2014business logic, external calls, notifications\u2014should happen asynchronously with idempotency and retries.",
+          "reasoning": "The user asks for design of idempotent webhook handler with retries, outbox, error monitoring, duplicate safeguards, concrete implementation steps. This is a technical design question. Need provide concrete steps, likely architecture, code-ish outline. Need ensure no hidden CoT in final. We can give concise but useful answer. Need mention idempotency keys, unique constraints, outbox pattern, retry with backoff, dead-letter, monitoring. Provide implementation steps. No need for more tools. Final only.",
+          "usage": {
+            "prompt_tokens": 44,
+            "total_tokens": 1955,
+            "completion_tokens": 1911,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 108,
+            "completion_tokens_details": {
+              "reasoning_tokens": 108
+            }
+          }
+        },
+        {
+          "task": "json",
+          "prompt": "Return only a JSON object with keys city and values. city must be Warsaw; values must contain exactly the integers 2, 3, 5 in that order.",
+          "ttft_s": 0.2166,
+          "elapsed_s": 0.4331,
+          "output_tokens": 110,
+          "estimated_decode_tok_s": 508.29,
+          "output_per_total_s": 254.01,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "{\"city\":\"Warsaw\",\"values\":[2,3,5]}",
+          "reasoning": "The user wants only a JSON object with keys city and values. city must be Warsaw; values must contain exactly integers 2,3,5 in that order. Need output only JSON object. Need ensure valid JSON. Structure: {\"city\":\"Warsaw\",\"values\":[2,3,5]}. No extra text. Need final only JSON. Ensure no markdown.",
+          "usage": {
+            "prompt_tokens": 48,
+            "total_tokens": 158,
+            "completion_tokens": 110,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 85,
+            "completion_tokens_details": {
+              "reasoning_tokens": 85
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -47,3 +47,22 @@ python benchmarks/basalt/compare_chat.py --url http://127.0.0.1:6022 --concurren
 - [Context sweep, one request](basalt-context-c1.json) and [two](basalt-context-c2.json): randomized repetitive filler, 1k/16k/30k/60k, two batches per point, up to 512 output tokens. Unlike the original SGLang sweep, EOS is permitted, so completion lengths vary and the tests are not direct wall-time comparisons. A high rate on repetitive text does not imply the same rate on real agent work.
 
 The Basalt engine ran in a temporary container, and SGLang was restored afterwards. These tests do not establish broader coding quality, long-run stability, Hermes interoperability, or lossless equivalence with the original BF16 projections.
+
+## Completed task sample
+
+On 2026-11-25, six short, public prompts asked for a Python TTL cache, arithmetic, incident extraction, SQL, webhook design and JSON. Each task ran **once** per engine at temperature 0 with a 3,072-token cap and natural EOS; then the same six tasks ran again in three pairs. See [workload script](agent-workload.py) and raw results: [SGLang single](agent-sglang-c1.json), [Basalt single](agent-basalt-c1.json), [SGLang pairs](agent-sglang-c2.json), [Basalt pairs](agent-basalt-c2.json). Answers and reasoning are included for inspection.
+
+All 24 requests ended naturally and passed their basic checks (keywords, a number, or JSON parsing); the checks do **not** establish code correctness or comprehensive answer quality. Outputs and their token counts differ. First-to-end estimated decode rates for three longer single requests:
+
+| Task | SGLang + DFlash2 | Basalt + DSpark | Output tokens, SGLang / Basalt |
+| --- | ---: | ---: | ---: |
+| Python TTL cache | 418 tok/s | 459 tok/s | 1,105 / 922 |
+| PostgreSQL query | 380 tok/s | 456 tok/s | 911 / 828 |
+| Webhook design | 289 tok/s | 402 tok/s | 1,590 / 1,656 |
+
+Short answers are sensitive to first-chunk and stream-end timing and showed mixed results. Summed wall time of the three sequentially submitted pairs was 11.93 s for SGLang and 8.59 s for Basalt, but they generated 4,254 and 3,734 tokens respectively, so this is not equal-work throughput. The Basalt single-run first request included approximately 2.4 s cold-start wait. No confidence intervals or general speedup claims are justified by one pass per task.
+
+```bash
+python benchmarks/basalt/agent-workload.py --url http://127.0.0.1:6020 --concurrency 1 --output tasks-c1.json
+python benchmarks/basalt/agent-workload.py --url http://127.0.0.1:6020 --concurrency 2 --output tasks-c2.json
+```
