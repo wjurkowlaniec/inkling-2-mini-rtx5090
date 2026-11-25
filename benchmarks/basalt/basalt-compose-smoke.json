@@ -1,0 +1,88 @@
+{
+  "vision": {
+    "id": "chatcmpl-2c9be4c858754328863eba50",
+    "object": "chat.completion",
+    "created": 1795607561,
+    "model": "inkling",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "A red square on the left and a blue circle on the right, on a white background.",
+          "reasoning_content": "The user wants description of shapes and colors in image. Need answer concise. Image shows red square on left, blue circle on right, white background. Need describe shapes and colors. Ensure no claim beyond. Mention square is red, circle is blue. Could say left red square, right blue circle. No need tools beyond thinking already. Final only."
+        },
+        "finish_reason": "stop"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 183,
+      "completion_tokens": 98,
+      "total_tokens": 281,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "timings": {
+      "cache_n": 0,
+      "prompt_n": 183,
+      "prompt_ms": 72.0,
+      "prompt_per_token_ms": 0.393,
+      "prompt_per_second": 2541.7,
+      "predicted_n": 98,
+      "predicted_ms": 265.8,
+      "predicted_per_token_ms": 2.712,
+      "predicted_per_second": 368.7,
+      "draft_n": 92,
+      "draft_n_accepted": 57
+    }
+  },
+  "tool": {
+    "id": "chatcmpl-cf4031df8b6849de93027aa4",
+    "object": "chat.completion",
+    "created": 1795607562,
+    "model": "inkling",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": null,
+          "reasoning_content": "The user asks to call the function get_weather for city Warsaw. Need use tool. We can call get_weather with city Warsaw. Then likely report result. Need ensure exact function name and args. Let's call.",
+          "tool_calls": [
+            {
+              "id": "call_0c1d884345c544d7bc380a7c",
+              "type": "function",
+              "function": {
+                "name": "get_weather",
+                "arguments": "{\"city\":\"Warsaw\"}"
+              }
+            }
+          ]
+        },
+        "finish_reason": "tool_calls"
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 107,
+      "completion_tokens": 83,
+      "total_tokens": 190,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "timings": {
+      "cache_n": 0,
+      "prompt_n": 107,
+      "prompt_ms": 46.3,
+      "prompt_per_token_ms": 0.433,
+      "prompt_per_second": 2311.0,
+      "predicted_n": 83,
+      "predicted_ms": 197.6,
+      "predicted_per_token_ms": 2.381,
+      "predicted_per_second": 420.0,
+      "draft_n": 74,
+      "draft_n_accepted": 54
+    }
+  }
+}

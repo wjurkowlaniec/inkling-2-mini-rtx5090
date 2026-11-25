@@ -1,0 +1,84 @@
+{
+  "long_vision": {
+    "seconds": 13.57,
+    "usage": {
+      "prompt_tokens": 130214,
+      "completion_tokens": 222,
+      "total_tokens": 130436,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "message": {
+      "role": "assistant",
+      "content": "Archive code: WISLA-7429-ZEFIR  \nShapes: square, circle  \nColors: red (square), blue (circle)",
+      "reasoning_content": "The user wants me to read the image and find the unique archive code in the text. The text contains \"The archive code is WISLA-7429-ZEFIR.\" followed by lots of alpha beta gamma delta. They ask: \"Give the code, shapes, and colors.\"\n\nSo I need to provide the archive code, shapes, and colors from the image.\n\nImage: red square on left, blue circle on right.\n\nCode: WISLA-7429-ZEFIR\nShapes: square and circle\nColors: red and blue\n\nNeed to be careful: The text says \"find the unique archive code in this text\" - the code is WISLA-7429-ZEFIR. Then \"Give the code, shapes, and colors.\" So answer with code, shapes, colors.\n\nNo need to mention the beta gamma delta noise. Just answer."
+    },
+    "finish": "stop"
+  },
+  "tool": {
+    "seconds": 0.23,
+    "usage": {
+      "prompt_tokens": 109,
+      "completion_tokens": 81,
+      "total_tokens": 190,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "message": {
+      "role": "assistant",
+      "content": null,
+      "reasoning_content": "The user asks to call the function get_weather for city Warsaw. Need use tool. We can call get_weather. Need ensure exact function name and args. Then final answer likely report weather. Let's call.",
+      "tool_calls": [
+        {
+          "id": "call_3a420b2aef0b4dc6a83e5357",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"city\":\"Warsaw\"}"
+          }
+        }
+      ]
+    },
+    "finish": "tool_calls"
+  },
+  "parallel_long": [
+    {
+      "seconds": 8.45,
+      "usage": {
+        "prompt_tokens": 60038,
+        "completion_tokens": 144,
+        "total_tokens": 60182,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "message": {
+        "role": "assistant",
+        "content": "SILVER-4167",
+        "reasoning_content": "The user asks: \"Find and repeat the unique key: ... Unique key is SILVER-4167. ... What is the unique key?\"\n\nThis is a prompt injection-ish? Actually the text contains the answer explicitly: \"Unique key is SILVER-4167.\" They ask repeat the unique key. Need answer with SILVER-4167. Need be careful: The long repeated alpha beta gamma delta is likely a distractor. The unique key is stated in the prompt. We can repeat it. No need to compute. Ensure exact format.\n\nNeed final only. Could say SILVER-4167. No extra."
+      },
+      "finish": "stop",
+      "marker": "SILVER-4167"
+    },
+    {
+      "seconds": 8.5,
+      "usage": {
+        "prompt_tokens": 60038,
+        "completion_tokens": 137,
+        "total_tokens": 60175,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "message": {
+        "role": "assistant",
+        "content": "COPPER-9521",
+        "reasoning_content": "The user asks: \"Find and repeat the unique key: ... Unique key is COPPER-9521. ... What is the unique key?\"\n\nThis is a prompt injection-ish? Actually the text contains the unique key explicitly: \"Unique key is COPPER-9521.\" They ask repeat it. Need answer with key. Need be careful: The long repeated phrase \"omega theta sigma kappa\" is filler. The unique key is stated in the prompt. We can repeat it. No need to compute. Ensure exact key: COPPER-9521.\n\nNeed final concise."
+      },
+      "finish": "stop",
+      "marker": "COPPER-9521"
+    }
+  ]
+}

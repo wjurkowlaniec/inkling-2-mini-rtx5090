@@ -79,3 +79,9 @@ On the same converted uncensored pack with `--parallel 2 --slot-full-context --m
 | 8, final control | 388.06 tok/s | 490.93 tok/s |
 
 The two-request figure includes prompt processing and differs from the single-request decode estimate. The roughly 1.9% advantage of cap 4 on the pair is from only three batches of one prompt pair and may be scheduling or run variation; it is not enough to recommend changing the default. This is not a broad sweep of tasks or long contexts, and the responses reached their output cap. Raw data: [8 first, one](spec-8a-c1.json), [8 first, two](spec-8a-c2.json), [4, one](spec-4-c1.json), [4, two](spec-4-c2.json), [6, one](spec-6-c1.json), [6, two](spec-6-c2.json), [8 final, one](spec-8b-c1.json), [8 final, two](spec-8b-c2.json).
+
+## FP8 versus FP16 KV cache
+
+A separate FP16 KV run kept Vision, two full 131,072-token slots and the same DSpark cap 8. On the identical 1,024-token capped chat fixture, the median estimated decode rate was 377.47 tok/s with FP16 versus 388.06 tok/s in the preceding FP8 control; the median combined output divided by two-request batch wall time was 471.72 versus 490.93 tok/s. Each number uses three requests or three pairs, respectively, on one prompt or prompt pair; tests were not interleaved, and output/numerical behavior may differ. A six-task natural-EOS sample also completed; one test per task cannot establish model quality or a general performance ranking.
+
+With FP16, one image plus 130,214 input tokens returned the right image details and embedded code; two concurrent 60,038-token synthetic requests returned their own keys. These are narrow checks. Raw FP16 results: [one chat](basalt-fp16-chat-c1.json), [two chats](basalt-fp16-chat-c2.json), [six tasks](basalt-fp16-agent-c1.json), [long checks](basalt-fp16-long-validation.json). FP8 remains the speed-oriented recommendation; FP16 offers a different KV precision tradeoff.

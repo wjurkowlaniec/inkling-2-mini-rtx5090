@@ -6,3 +6,5 @@ __pycache__/
 *.local.jsonl
 
 *.local.json
+basalt/runtime/
+basalt/downloads/

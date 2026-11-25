@@ -1,0 +1,24 @@
+services:
+  inkling-basalt:
+    image: lmsysorg/sglang:inkling-2-mini@sha256:efac853b46811ccb760545b7b29e7119bdf907537ccf6e863fac3011fe8b98de
+    container_name: inkling-basalt
+    restart: unless-stopped
+    network_mode: host
+    ipc: host
+    working_dir: /basalt
+    entrypoint: ["/basalt/bin/basalt", "serve"]
+    volumes:
+      - ${BASALT_DIR:-./runtime}:/basalt:ro
+      - ${BASALT_MODEL:-./models/inkling.basalt}:/model/inkling.basalt:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >-
+      --model /model/inkling.basalt --alias inkling
+      --host 127.0.0.1 --port 6020
+      --parallel 2 --slot-full-context --vision dynamic
+      --max-context 131072 --kv fp8 --spec 8

@@ -1,0 +1,82 @@
+{
+  "url": "http://127.0.0.1:6022",
+  "concurrency": 1,
+  "method": "three repeats; chat completions; temperature 0; max 1024; EOS allowed; stream first visible token to stream end estimates; timings include client overhead and two-request overlap. Output may differ by engine.",
+  "batches": [
+    {
+      "requests": [
+        {
+          "ttft_s": 2.6667,
+          "elapsed_s": 5.4222,
+          "output_tokens": 1024,
+          "output_per_total_s": 188.85,
+          "estimated_decode_tok_s": 371.63,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "completion_tokens": 1024,
+            "total_tokens": 1073,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue. Need explain retries, idempotency, DLQ, monitoring, trade-offs. Need produce final answer only. Need craft comprehensive but not too long. Include architecture, components, flow, design patterns, code-ish examples, failure modes, trade-offs. Ensure accuracy: async queues decouple producers/consumers, at-least-once delivery, idempotency needed, retries with backoff, DLQ after max attempts, monitoring metrics, backpressure, ordering, scaling, exactly-once illusion. Mention transactional outbox for reliable enqueue. Mention visibility timeout, ack/nack, poison messages. Provide practical checklist.\n\nNeed answer in final. No citations needed. Ensure no hidden thinking in final.A reliable asynchronous job queue is a durable buffer between \u201cwork that must happen\u201d and \u201cthe process that performs it.\u201d It lets you absorb traffic spikes, retry failures, isolate slow dependencies, and keep user-facing requests fast. The hard part is that most queues provide **at-least-once delivery**, not exactly-once execution. So reliability comes from designing for duplicates, retries, timeouts, and observability.\n\n## 1. Core architecture\n\nA typical design:\n\n1. **Producer** creates a job and enqueues it.\n2. **Queue** stores the job durably.\n3. **Worker** polls or receives the job.\n4. **Worker** processes the job.\n5. **Worker** acknowledges success or reports failure.\n6. **Queue/system** retries or moves the job to a dead letter queue.\n\nImportant components:\n\n- **Job store/queue**: Redis, RabbitMQ, SQS, Kafka, Postgres-backed queue, etc.\n- **Workers**: stateless processes that consume jobs.\n- **Retry policy**: how failed jobs are retried.\n- **Dead letter queue**: storage for jobs that cannot be processed.\n- **Monitoring**: metrics, logs, traces, alerts.\n- **Idempotency layer**: deduplication or safe reprocessing.\n\nA robust flow:\n\n```text\nAPI request\n   -> write business data\n   -> enqueue job\n   -> return response\n\nWorker\n   -> receive job\n   -> check idempotency\n   -> process job\n   -> ack success\n   -> retry/nack failure\n   -> move to DLQ after max attempts\n```\n\n## 2. Reliable enqueueing: avoid lost jobs\n\nA common failure mode is:\n\n```text\n1. Save order to database\n2. Crash before enqueueing email job\n3. Email never sent\n```\n\nTo avoid this, use a **transactional outbox**:\n\n```text\nBEGIN TRANSACTION\n  insert order\n  insert outbox_event(type=\"send_email\", payload=...)\nCOMMIT\n```\n\nThen a separate relay process reads the outbox and publishes jobs to the queue.\n\nBenefits:\n\n- Job creation is atomic with business data.\n- No lost jobs if the app crashes after commit.\n- Easier recovery and replay.\n\nTrade-off:\n\n- Adds an extra table and relay process.\n- Slightly more operational complexity.\n\n## 3. Delivery semantics\n\nMost queues give you **at-least-once delivery**:\n\n- A worker may receive the same job more than once.\n- A worker may crash after processing but before acknowledging.\n- A retry may happen even if the first attempt succeeded.\n\nExactly-once delivery is usually an illusion unless the whole system is designed around idempotent processing or transactional consumers.\n\nPractical rule:\n\n> Assume every job may be delivered more than once. Make processing safe to repeat.\n\n## 4. Idempotency\n\nIdempotency means processing the same job multiple times produces the same final result.\n\nExample: sending an email.\n\nBad:\n\n```text\nprocess job\n  send email\n  crash before ack\n  job retried\n  email sent again\n```\n\nBetter:\n\n```text\nprocess job\n  check if email_sent_for(order_id)\n  if not sent:\n    send email\n    mark email_sent_for(order_id)\n  ack job\n```\n\nCommon idempotency strategies:\n\n### Unique job ID\n\nEvery job has a stable ID:\n\n```json\n{\n  \"job_id\": \"uuid\",\n  \"type\": \"send_email\",\n  \"payload\": {\n    \"order_id\": \"123\"\n  }\n",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 1
+        }
+      ],
+      "wall_s": 5.4222,
+      "aggregate_tok_s": 188.85
+    },
+    {
+      "requests": [
+        {
+          "ttft_s": 0.0189,
+          "elapsed_s": 2.7317,
+          "output_tokens": 1024,
+          "output_per_total_s": 374.86,
+          "estimated_decode_tok_s": 377.47,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "completion_tokens": 1024,
+            "total_tokens": 1073,
+            "prompt_tokens_details": {
+              "cached_tokens": 48
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue. Need explain retries, idempotency, DLQ, monitoring, trade-offs. Need produce final answer only. Need craft comprehensive but not too long. Include architecture, components, flow, design patterns, code-ish examples, failure modes, trade-offs. Ensure accuracy: async queues decouple producers/consumers, at-least-once delivery, idempotency needed, retries with backoff, DLQ after max attempts, monitoring metrics, backpressure, ordering, scaling, exactly-once illusion. Mention transactional outbox for reliable enqueue. Mention visibility timeout, ack/nack, poison messages. Provide practical checklist.\n\nNeed answer in final. No citations needed. Ensure no hidden thinking in final.A reliable asynchronous job queue is a durable buffer between \u201cwork that must happen\u201d and \u201cthe process that performs it.\u201d It lets you absorb traffic spikes, retry failures, isolate slow dependencies, and keep user-facing requests fast. The hard part is that most queues provide **at-least-once delivery**, not exactly-once execution. So reliability comes from designing for duplicates, retries, timeouts, and observability.\n\n## 1. Core architecture\n\nA typical design:\n\n1. **Producer** creates a job and enqueues it.\n2. **Queue** stores the job durably.\n3. **Worker** polls or receives the job.\n4. **Worker** processes the job.\n5. **Worker** acknowledges success or reports failure.\n6. **Queue/system** retries or moves the job to a dead letter queue.\n\nImportant components:\n\n- **Job store/queue**: Redis, RabbitMQ, SQS, Kafka, Postgres-backed queue, etc.\n- **Workers**: stateless processes that consume jobs.\n- **Retry policy**: how failed jobs are retried.\n- **Dead letter queue**: storage for jobs that cannot be processed.\n- **Monitoring**: metrics, logs, traces, alerts.\n- **Idempotency layer**: deduplication or safe reprocessing.\n\nA robust flow:\n\n```text\nAPI request\n   -> write business data\n   -> enqueue job\n   -> return response\n\nWorker\n   -> receive job\n   -> check idempotency\n   -> process job\n   -> ack success\n   -> retry/nack failure\n   -> move to DLQ after max attempts\n```\n\n## 2. Reliable enqueueing: avoid lost jobs\n\nA common failure mode is:\n\n```text\n1. Save order to database\n2. Crash before enqueueing email job\n3. Email never sent\n```\n\nTo avoid this, use a **transactional outbox**:\n\n```text\nBEGIN TRANSACTION\n  insert order\n  insert outbox_event(type=\"send_email\", payload=...)\nCOMMIT\n```\n\nThen a separate relay process reads the outbox and publishes jobs to the queue.\n\nBenefits:\n\n- Job creation is atomic with business data.\n- No lost jobs if the app crashes after commit.\n- Easier recovery and replay.\n\nTrade-off:\n\n- Adds an extra table and relay process.\n- Slightly more operational complexity.\n\n## 3. Delivery semantics\n\nMost queues give you **at-least-once delivery**:\n\n- A worker may receive the same job more than once.\n- A worker may crash after processing but before acknowledging.\n- A retry may happen even if the first attempt succeeded.\n\nExactly-once delivery is usually an illusion unless the whole system is designed around idempotent processing or transactional consumers.\n\nPractical rule:\n\n> Assume every job may be delivered more than once. Make processing safe to repeat.\n\n## 4. Idempotency\n\nIdempotency means processing the same job multiple times produces the same final result.\n\nExample: sending an email.\n\nBad:\n\n```text\nprocess job\n  send email\n  crash before ack\n  job retried\n  email sent again\n```\n\nBetter:\n\n```text\nprocess job\n  check if email_sent_for(order_id)\n  if not sent:\n    send email\n    mark email_sent_for(order_id)\n  ack job\n```\n\nCommon idempotency strategies:\n\n### Unique job ID\n\nEvery job has a stable ID:\n\n```json\n{\n  \"job_id\": \"uuid\",\n  \"type\": \"send_email\",\n  \"payload\": {\n    \"order_id\": \"123\"\n  }\n",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 2
+        }
+      ],
+      "wall_s": 2.7317,
+      "aggregate_tok_s": 374.86
+    },
+    {
+      "requests": [
+        {
+          "ttft_s": 0.0188,
+          "elapsed_s": 2.7202,
+          "output_tokens": 1024,
+          "output_per_total_s": 376.44,
+          "estimated_decode_tok_s": 379.06,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "completion_tokens": 1024,
+            "total_tokens": 1073,
+            "prompt_tokens_details": {
+              "cached_tokens": 48
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue. Need explain retries, idempotency, DLQ, monitoring, trade-offs. Need produce final answer only. Need craft comprehensive but not too long. Include architecture, components, flow, design patterns, code-ish examples, failure modes, trade-offs. Ensure accuracy: async queues decouple producers/consumers, at-least-once delivery, idempotency needed, retries with backoff, DLQ after max attempts, monitoring metrics, backpressure, ordering, scaling, exactly-once illusion. Mention transactional outbox for reliable enqueue. Mention visibility timeout, ack/nack, poison messages. Provide practical checklist.\n\nNeed answer in final. No citations needed. Ensure no hidden thinking in final.A reliable asynchronous job queue is a durable buffer between \u201cwork that must happen\u201d and \u201cthe process that performs it.\u201d It lets you absorb traffic spikes, retry failures, isolate slow dependencies, and keep user-facing requests fast. The hard part is that most queues provide **at-least-once delivery**, not exactly-once execution. So reliability comes from designing for duplicates, retries, timeouts, and observability.\n\n## 1. Core architecture\n\nA typical design:\n\n1. **Producer** creates a job and enqueues it.\n2. **Queue** stores the job durably.\n3. **Worker** polls or receives the job.\n4. **Worker** processes the job.\n5. **Worker** acknowledges success or reports failure.\n6. **Queue/system** retries or moves the job to a dead letter queue.\n\nImportant components:\n\n- **Job store/queue**: Redis, RabbitMQ, SQS, Kafka, Postgres-backed queue, etc.\n- **Workers**: stateless processes that consume jobs.\n- **Retry policy**: how failed jobs are retried.\n- **Dead letter queue**: storage for jobs that cannot be processed.\n- **Monitoring**: metrics, logs, traces, alerts.\n- **Idempotency layer**: deduplication or safe reprocessing.\n\nA robust flow:\n\n```text\nAPI request\n   -> write business data\n   -> enqueue job\n   -> return response\n\nWorker\n   -> receive job\n   -> check idempotency\n   -> process job\n   -> ack success\n   -> retry/nack failure\n   -> move to DLQ after max attempts\n```\n\n## 2. Reliable enqueueing: avoid lost jobs\n\nA common failure mode is:\n\n```text\n1. Save order to database\n2. Crash before enqueueing email job\n3. Email never sent\n```\n\nTo avoid this, use a **transactional outbox**:\n\n```text\nBEGIN TRANSACTION\n  insert order\n  insert outbox_event(type=\"send_email\", payload=...)\nCOMMIT\n```\n\nThen a separate relay process reads the outbox and publishes jobs to the queue.\n\nBenefits:\n\n- Job creation is atomic with business data.\n- No lost jobs if the app crashes after commit.\n- Easier recovery and replay.\n\nTrade-off:\n\n- Adds an extra table and relay process.\n- Slightly more operational complexity.\n\n## 3. Delivery semantics\n\nMost queues give you **at-least-once delivery**:\n\n- A worker may receive the same job more than once.\n- A worker may crash after processing but before acknowledging.\n- A retry may happen even if the first attempt succeeded.\n\nExactly-once delivery is usually an illusion unless the whole system is designed around idempotent processing or transactional consumers.\n\nPractical rule:\n\n> Assume every job may be delivered more than once. Make processing safe to repeat.\n\n## 4. Idempotency\n\nIdempotency means processing the same job multiple times produces the same final result.\n\nExample: sending an email.\n\nBad:\n\n```text\nprocess job\n  send email\n  crash before ack\n  job retried\n  email sent again\n```\n\nBetter:\n\n```text\nprocess job\n  check if email_sent_for(order_id)\n  if not sent:\n    send email\n    mark email_sent_for(order_id)\n  ack job\n```\n\nCommon idempotency strategies:\n\n### Unique job ID\n\nEvery job has a stable ID:\n\n```json\n{\n  \"job_id\": \"uuid\",\n  \"type\": \"send_email\",\n  \"payload\": {\n    \"order_id\": \"123\"\n  }\n",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 3
+        }
+      ],
+      "wall_s": 2.7202,
+      "aggregate_tok_s": 376.44
+    }
+  ]
+}

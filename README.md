@@ -1,8 +1,8 @@
 # Inkling 2 Mini on RTX 5090
 
-A single-GPU SGLang configuration for the official [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini): 128k context, image input, tool calling, DFlash2 speculative decoding, and up to two concurrent requests. It also supports [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). The checkpoint is downloaded separately and is not included in this repository.
+Run [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) on one RTX 5090 with 128k context, Vision and two concurrent requests. **For generation speed, start with the [recommended Basalt setup](basalt/README.md)**; this repository also provides the SGLang + DFlash2 configuration below. Both configurations can use [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). The reported tests used the uncensored checkpoint. Checkpoints are downloaded separately and are not included in this repository.
 
-## Hardware and requirements
+## SGLang alternative: hardware and requirements
 
 - NVIDIA RTX 5090 with 32 GB VRAM, Linux, NVIDIA driver and NVIDIA Container Toolkit configured for Docker.
 - Docker with Compose and GPU access; roughly 20 GB for the model plus space for the image and caches. The deployed container image is large (about 56 GB before layer sharing).
@@ -11,7 +11,7 @@ A single-GPU SGLang configuration for the official [Thinking Machines Inkling 2 
 
 This is a setup for an RTX 5090, not a guarantee that the same flags work on other GPUs. The SGLang base image is pinned to the digest tested on 2026-11-21; the Dockerfile applies the [model-specific DFlash2 compatibility patch](https://huggingface.co/incoai/Inkling-2-Mini-DFlash2/blob/4f9088ea66c21f2b99ed657d1941c306b03e84d2/sglang_inkling_dflash2.py) from the pinned draft revision. The model uses NVFP4 and MXFP8 experts; the KV cache is BF16.
 
-## Quick start
+## SGLang quick start
 
 ```bash
 python -m pip install --user -U huggingface_hub
@@ -111,7 +111,7 @@ A separate [sampling check](benchmarks/results/dflash2-sampling-2026-11-25.json)
 
 ### Experimental Basalt comparison
 
-A separate [Basalt experiment](benchmarks/basalt/README.md) converted the uncensored checkpoint, enabled Vision and two 128k slots, and tested one and two requests. One short chat prompt showed approximately 388 vs 285 estimated decode tok/s for Basalt vs this SGLang setup; paired output over batch time was approximately 494 vs 469 tok/s. The engines use different drafters and numerical precision, and the few requests do not establish equal quality or a general speedup. Basalt is not the default deployment in this repository.
+A separate [Basalt experiment](benchmarks/basalt/README.md) converted the uncensored checkpoint, enabled Vision and two 128k slots, and tested one and two requests. One short chat prompt showed approximately 388 vs 285 estimated decode tok/s for Basalt vs this SGLang setup; paired output over batch time was approximately 494 vs 469 tok/s. The engines use different drafters and numerical precision, and the few requests do not establish equal quality or a general speedup. The recommended Basalt setup is documented separately; the root Compose file remains the SGLang alternative.
 
 ## Limits and tradeoffs
 

@@ -1,0 +1,139 @@
+{
+  "url": "http://127.0.0.1:6022",
+  "concurrency": 2,
+  "method": "three repeats; chat completions; temperature 0; max 1024; EOS allowed; stream first visible token to stream end estimates; timings include client overhead and two-request overlap. Output may differ by engine.",
+  "batches": [
+    {
+      "requests": [
+        {
+          "ttft_s": 0.0614,
+          "elapsed_s": 4.3414,
+          "output_tokens": 1024,
+          "output_per_total_s": 235.87,
+          "estimated_decode_tok_s": 239.25,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "completion_tokens": 1024,
+            "total_tokens": 1073,
+            "prompt_tokens_details": {
+              "cached_tokens": 48
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue. Need explain retries, idempotency, DLQ, monitoring, trade-offs. Need produce final answer only. Need craft comprehensive but not too long. Include architecture, components, flow, design patterns, code-ish examples, failure modes, trade-offs. Ensure accuracy: async queues decouple producers/consumers, at-least-once delivery, idempotency needed, retries with backoff, DLQ after max attempts, monitoring metrics, backpressure, ordering, scaling, exactly-once illusion. Mention transactional outbox for reliable enqueue. Mention visibility timeout, ack/nack, poison messages. Provide practical checklist.\n\nNeed answer in final. No citations needed. Ensure no hidden thinking in final.A reliable asynchronous job queue is a durable buffer between \u201cwork that must happen\u201d and \u201cthe process that performs it.\u201d It lets you absorb traffic spikes, retry failures, isolate slow dependencies, and keep user-facing requests fast. The hard part is that most queues provide **at-least-once delivery**, not exactly-once execution. So reliability comes from designing for duplicates, retries, timeouts, and observability.\n\n## 1. Core architecture\n\nA typical design:\n\n1. **Producer** creates a job and enqueues it.\n2. **Queue** stores the job durably.\n3. **Worker** polls or receives the job.\n4. **Worker** processes the job.\n5. **Worker** acknowledges success or reports failure.\n6. **Queue/system** retries or moves the job to a dead letter queue.\n\nImportant components:\n\n- **Job store/queue**: Redis, RabbitMQ, SQS, Kafka, Postgres-backed queue, etc.\n- **Workers**: stateless processes that consume jobs.\n- **Retry policy**: how failed jobs are retried.\n- **Dead letter queue**: storage for jobs that cannot be processed.\n- **Monitoring**: metrics, logs, traces, alerts.\n- **Idempotency layer**: deduplication or safe reprocessing.\n\nA robust flow:\n\n```text\nAPI request\n   -> write business data\n   -> enqueue job\n   -> return response\n\nWorker\n   -> receive job\n   -> check idempotency\n   -> process job\n   -> ack success\n   -> retry/nack failure\n   -> move to DLQ after max attempts\n```\n\n## 2. Reliable enqueueing: avoid lost jobs\n\nA common failure mode is:\n\n```text\n1. Save order to database\n2. Crash before enqueueing email job\n3. Email never sent\n```\n\nTo avoid this, use a **transactional outbox**:\n\n```text\nBEGIN TRANSACTION\n  insert order\n  insert outbox_event(type=\"send_email\", payload=...)\nCOMMIT\n```\n\nThen a separate relay process reads the outbox and publishes jobs to the queue.\n\nBenefits:\n\n- Job creation is atomic with business data.\n- No lost jobs if the app crashes after commit.\n- Easier recovery and replay.\n\nTrade-off:\n\n- Adds an extra table and relay process.\n- Slightly more operational complexity.\n\n## 3. Delivery semantics\n\nMost queues give you **at-least-once delivery**:\n\n- A worker may receive the same job more than once.\n- A worker may crash after processing but before acknowledging.\n- A retry may happen even if the first attempt succeeded.\n\nExactly-once delivery is usually an illusion unless the whole system is designed around idempotent processing or transactional consumers.\n\nPractical rule:\n\n> Assume every job may be delivered more than once. Make processing safe to repeat.\n\n## 4. Idempotency\n\nIdempotency means processing the same job multiple times produces the same final result.\n\nExample: sending an email.\n\nBad:\n\n```text\nprocess job\n  send email\n  crash before ack\n  job retried\n  email sent again\n```\n\nBetter:\n\n```text\nprocess job\n  check if email_sent_for(order_id)\n  if not sent:\n    send email\n    mark email_sent_for(order_id)\n  ack job\n```\n\nCommon idempotency strategies:\n\n### Unique job ID\n\nEvery job has a stable ID:\n\n```json\n{\n  \"job_id\": \"uuid\",\n  \"type\": \"send_email\",\n  \"payload\": {\n    \"order_id\": \"123\"\n  }\n",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 1
+        },
+        {
+          "ttft_s": 0.1704,
+          "elapsed_s": 3.9114,
+          "output_tokens": 1024,
+          "output_per_total_s": 261.8,
+          "estimated_decode_tok_s": 273.72,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 35,
+            "completion_tokens": 1024,
+            "total_tokens": 1059,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "text": "The user asks for a production-ready Python LRU cache and comprehensive tests, plus explanation of complexity and edge cases. Need provide code and explanation. Need ensure correctness.\n\nDesign: OrderedDict-based LRU. Thread-safe with lock. Support maxsize, optional ttl? Production-ready maybe include maxsize, get/put/delete/clear, stats, thread-safe, OrderedDict move_to_end. Avoid unbounded. Handle maxsize<=0, key unhashable? Python dict handles. Use __slots__? Keep simple.\n\nNeed mention complexity: O(1) get/put/delete amortized, O(n) clear, memory O(n). Edge cases: maxsize=0 means no caching? Decide: maxsize must be positive int; raise ValueError. get with default, contains, __contains__, __len__, __iter__? Keep minimal but robust.\n\nThread safety: use threading.RLock. get moves to end. put: if key exists, update value and move to end; else insert and evict oldest if over capacity. Return value? put returns None. delete returns bool. clear resets. stats hits/misses/evictions.\n\nTests: unittest or pytest. Provide pytest-style tests. Cover basic, capacity eviction, recency update on get, update existing, delete, clear, maxsize validation, thread safety smoke test, default get, no stale after eviction, iteration? Avoid too much.\n\nNeed final answer with code block and explanation. Mention not using functools.lru_cache because need thread-safe/stats/ttl. Mention ttl optional maybe not implement to keep focused. Could include optional ttl? Production-ready maybe include maxsize and optional ttl. But complexity increases. Keep core LRU plus optional ttl? User didn't ask ttl. Avoid scope creep.\n\nNeed ensure code is valid. Use OrderedDict.\n\nPotential issue: OrderedDict move_to_end on existing key in get. In put existing: value = self._data[key]; self._data[key]=value; move_to_end. Good.\n\nThread-safe stats increments inside lock.\n\nTests with pytest: import pytest. Thread test: create cache maxsize=100, threads increment? Simpler: many threads get/put same keys, assert len<=maxsize and stats consistent. Avoid flaky.\n\nNeed final concise but complete.Below is a thread-safe, `OrderedDict`-backed LRU cache plus a pytest suite.\n\n```python\nfrom __future__ import annotations\n\nimport threading\nfrom collections import OrderedDict\nfrom typing import Any, Hashable, Iterator, Optional\n\n\nclass LRUCache:\n    \"\"\"\n    Thread-safe least-recently-used cache.\n\n    - O(1) get/put/delete/contains (amortized)\n    - Bounded by maxsize\n    - Tracks hits/misses/evictions\n    \"\"\"\n\n    def __init__(self, maxsize: int):\n        if not isinstance(maxsize, int) or isinstance(maxsize, bool):\n            raise TypeError(\"maxsize must be an int\")\n        if maxsize < 1:\n            raise ValueError(\"maxsize must be >= 1\")\n\n        self._maxsize = maxsize\n        self._data: OrderedDict[Hashable, Any] = OrderedDict()\n        self._lock = threading.RLock()\n\n        self._hits = 0\n        self._misses = 0\n        self._evictions = 0\n\n    @property\n    def maxsize(self) -> int:\n        return self._maxsize\n\n    def __len__(self) -> int:\n        with self._lock:\n            return len(self._data)\n\n    def __contains__(self, key: Hashable) -> bool:\n        with self._lock:\n            return key in self._data\n\n    def __iter__(self) -> Iterator[Hashable]:\n        with self._lock:\n            return iter(list(self._data.keys()))\n\n    def get(self, key: Hashable, default: Any = None) -> Any:\n        with self._lock:\n            if key not in self._data:\n                self._misses += 1\n                return default\n            self._hits += 1\n            self._",
+          "prompt": "Implement a production-ready Python LRU cache and a comprehensive suite of tests. Explain complexity and edge cases.",
+          "iteration": 1
+        }
+      ],
+      "wall_s": 4.3416,
+      "aggregate_tok_s": 471.72
+    },
+    {
+      "requests": [
+        {
+          "ttft_s": 0.0474,
+          "elapsed_s": 4.3761,
+          "output_tokens": 1024,
+          "output_per_total_s": 234.0,
+          "estimated_decode_tok_s": 236.56,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "completion_tokens": 1024,
+            "total_tokens": 1073,
+            "prompt_tokens_details": {
+              "cached_tokens": 48
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue. Need explain retries, idempotency, DLQ, monitoring, trade-offs. Need produce final answer only. Need craft comprehensive but not too long. Include architecture, components, flow, design patterns, code-ish examples, failure modes, trade-offs. Ensure accuracy: async queues decouple producers/consumers, at-least-once delivery, idempotency needed, retries with backoff, DLQ after max attempts, monitoring metrics, backpressure, ordering, scaling, exactly-once illusion. Mention transactional outbox for reliable enqueue. Mention visibility timeout, ack/nack, poison messages. Provide practical checklist.\n\nNeed answer in final. No citations needed. Ensure no hidden thinking in final.A reliable asynchronous job queue is a durable buffer between \u201cwork that must happen\u201d and \u201cthe process that performs it.\u201d It lets you absorb traffic spikes, retry failures, isolate slow dependencies, and keep user-facing requests fast. The hard part is that most queues provide **at-least-once delivery**, not exactly-once execution. So reliability comes from designing for duplicates, retries, timeouts, and observability.\n\n## 1. Core architecture\n\nA typical design:\n\n1. **Producer** creates a job and enqueues it.\n2. **Queue** stores the job durably.\n3. **Worker** polls or receives the job.\n4. **Worker** processes the job.\n5. **Worker** acknowledges success or reports failure.\n6. **Queue/system** retries or moves the job to a dead letter queue.\n\nImportant components:\n\n- **Job store/queue**: Redis, RabbitMQ, SQS, Kafka, Postgres-backed queue, etc.\n- **Workers**: stateless processes that consume jobs.\n- **Retry policy**: how failed jobs are retried.\n- **Dead letter queue**: storage for jobs that cannot be processed.\n- **Monitoring**: metrics, logs, traces, alerts.\n- **Idempotency layer**: deduplication or safe reprocessing.\n\nA robust flow:\n\n```text\nAPI request\n   -> write business data\n   -> enqueue job\n   -> return response\n\nWorker\n   -> receive job\n   -> check idempotency\n   -> process job\n   -> ack success\n   -> retry/nack failure\n   -> move to DLQ after max attempts\n```\n\n## 2. Reliable enqueueing: avoid lost jobs\n\nA common failure mode is:\n\n```text\n1. Save order to database\n2. Crash before enqueueing email job\n3. Email never sent\n```\n\nTo avoid this, use a **transactional outbox**:\n\n```text\nBEGIN TRANSACTION\n  insert order\n  insert outbox_event(type=\"send_email\", payload=...)\nCOMMIT\n```\n\nThen a separate relay process reads the outbox and publishes jobs to the queue.\n\nBenefits:\n\n- Job creation is atomic with business data.\n- No lost jobs if the app crashes after commit.\n- Easier recovery and replay.\n\nTrade-off:\n\n- Adds an extra table and relay process.\n- Slightly more operational complexity.\n\n## 3. Delivery semantics\n\nMost queues give you **at-least-once delivery**:\n\n- A worker may receive the same job more than once.\n- A worker may crash after processing but before acknowledging.\n- A retry may happen even if the first attempt succeeded.\n\nExactly-once delivery is usually an illusion unless the whole system is designed around idempotent processing or transactional consumers.\n\nPractical rule:\n\n> Assume every job may be delivered more than once. Make processing safe to repeat.\n\n## 4. Idempotency\n\nIdempotency means processing the same job multiple times produces the same final result.\n\nExample: sending an email.\n\nBad:\n\n```text\nprocess job\n  send email\n  crash before ack\n  job retried\n  email sent again\n```\n\nBetter:\n\n```text\nprocess job\n  check if email_sent_for(order_id)\n  if not sent:\n    send email\n    mark email_sent_for(order_id)\n  ack job\n```\n\nCommon idempotency strategies:\n\n### Unique job ID\n\nEvery job has a stable ID:\n\n```json\n{\n  \"job_id\": \"uuid\",\n  \"type\": \"send_email\",\n  \"payload\": {\n    \"order_id\": \"123\"\n  }\n",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 2
+        },
+        {
+          "ttft_s": 0.1482,
+          "elapsed_s": 3.8882,
+          "output_tokens": 1024,
+          "output_per_total_s": 263.36,
+          "estimated_decode_tok_s": 273.8,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 35,
+            "completion_tokens": 1024,
+            "total_tokens": 1059,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "text": "The user asks for a production-ready Python LRU cache and comprehensive tests, plus explanation of complexity and edge cases. Need provide code and explanation. Need ensure correctness.\n\nDesign: OrderedDict-based LRU. Thread-safe with lock. Support maxsize, optional ttl? Production-ready maybe include maxsize, get/put/delete/clear, stats, thread-safe, OrderedDict move_to_end. Avoid unbounded. Handle maxsize<=0, key unhashable? Python dict handles. Use __slots__? Keep simple.\n\nNeed mention complexity: O(1) get/put/delete amortized, O(n) clear, memory O(n). Edge cases: maxsize=0 means no caching? Decide: maxsize must be positive int; raise ValueError. get with default, contains, __contains__, __len__, __iter__? Keep minimal but robust.\n\nThread safety: use threading.RLock. get moves to end. put: if key exists, update value and move to end; else insert and evict oldest if over capacity. Return value? put returns None. delete returns bool. clear resets. stats hits/misses/evictions.\n\nTests: unittest or pytest. Provide pytest-style tests. Cover basic, capacity eviction, recency update on get, update existing, delete, clear, maxsize validation, thread safety smoke test, default get, no stale after eviction, iteration? Avoid too much.\n\nNeed final answer with code block and explanation. Mention not using functools.lru_cache because need thread-safe/stats/ttl. Mention ttl optional maybe not implement to keep focused. Could include optional ttl? Production-ready maybe include maxsize and optional ttl. But complexity increases. Keep core LRU plus optional ttl? User didn't ask ttl. Avoid scope creep.\n\nNeed ensure code is valid. Use OrderedDict.\n\nPotential issue: OrderedDict move_to_end on existing key in get. In put existing: value = self._data[key]; self._data[key]=value; move_to_end. Good.\n\nThread-safe stats increments inside lock.\n\nTests with pytest: import pytest. Thread test: create cache maxsize=100, threads increment? Simpler: many threads get/put same keys, assert len<=maxsize and stats consistent. Avoid flaky.\n\nNeed final concise but complete.Below is a thread-safe, `OrderedDict`-backed LRU cache plus a pytest suite.\n\n```python\nfrom __future__ import annotations\n\nimport threading\nfrom collections import OrderedDict\nfrom typing import Any, Hashable, Iterator, Optional\n\n\nclass LRUCache:\n    \"\"\"\n    Thread-safe least-recently-used cache.\n\n    - O(1) get/put/delete/contains (amortized)\n    - Bounded by maxsize\n    - Tracks hits/misses/evictions\n    \"\"\"\n\n    def __init__(self, maxsize: int):\n        if not isinstance(maxsize, int) or isinstance(maxsize, bool):\n            raise TypeError(\"maxsize must be an int\")\n        if maxsize < 1:\n            raise ValueError(\"maxsize must be >= 1\")\n\n        self._maxsize = maxsize\n        self._data: OrderedDict[Hashable, Any] = OrderedDict()\n        self._lock = threading.RLock()\n\n        self._hits = 0\n        self._misses = 0\n        self._evictions = 0\n\n    @property\n    def maxsize(self) -> int:\n        return self._maxsize\n\n    def __len__(self) -> int:\n        with self._lock:\n            return len(self._data)\n\n    def __contains__(self, key: Hashable) -> bool:\n        with self._lock:\n            return key in self._data\n\n    def __iter__(self) -> Iterator[Hashable]:\n        with self._lock:\n            return iter(list(self._data.keys()))\n\n    def get(self, key: Hashable, default: Any = None) -> Any:\n        with self._lock:\n            if key not in self._data:\n                self._misses += 1\n                return default\n            self._hits += 1\n            self._",
+          "prompt": "Implement a production-ready Python LRU cache and a comprehensive suite of tests. Explain complexity and edge cases.",
+          "iteration": 2
+        }
+      ],
+      "wall_s": 4.3762,
+      "aggregate_tok_s": 467.99
+    },
+    {
+      "requests": [
+        {
+          "ttft_s": 0.1068,
+          "elapsed_s": 4.2904,
+          "output_tokens": 1024,
+          "output_per_total_s": 238.67,
+          "estimated_decode_tok_s": 244.76,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "completion_tokens": 1024,
+            "total_tokens": 1073,
+            "prompt_tokens_details": {
+              "cached_tokens": 48
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue. Need explain retries, idempotency, DLQ, monitoring, trade-offs. Need produce final answer only. Need craft comprehensive but not too long. Include architecture, components, flow, design patterns, code-ish examples, failure modes, trade-offs. Ensure accuracy: async queues decouple producers/consumers, at-least-once delivery, idempotency needed, retries with backoff, DLQ after max attempts, monitoring metrics, backpressure, ordering, scaling, exactly-once illusion. Mention transactional outbox for reliable enqueue. Mention visibility timeout, ack/nack, poison messages. Provide practical checklist.\n\nNeed answer in final. No citations needed. Ensure no hidden thinking in final.A reliable asynchronous job queue is a durable buffer between \u201cwork that must happen\u201d and \u201cthe process that performs it.\u201d It lets you absorb traffic spikes, retry failures, isolate slow dependencies, and keep user-facing requests fast. The hard part is that most queues provide **at-least-once delivery**, not exactly-once execution. So reliability comes from designing for duplicates, retries, timeouts, and observability.\n\n## 1. Core architecture\n\nA typical design:\n\n1. **Producer** creates a job and enqueues it.\n2. **Queue** stores the job durably.\n3. **Worker** polls or receives the job.\n4. **Worker** processes the job.\n5. **Worker** acknowledges success or reports failure.\n6. **Queue/system** retries or moves the job to a dead letter queue.\n\nImportant components:\n\n- **Job store/queue**: Redis, RabbitMQ, SQS, Kafka, Postgres-backed queue, etc.\n- **Workers**: stateless processes that consume jobs.\n- **Retry policy**: how failed jobs are retried.\n- **Dead letter queue**: storage for jobs that cannot be processed.\n- **Monitoring**: metrics, logs, traces, alerts.\n- **Idempotency layer**: deduplication or safe reprocessing.\n\nA robust flow:\n\n```text\nAPI request\n   -> write business data\n   -> enqueue job\n   -> return response\n\nWorker\n   -> receive job\n   -> check idempotency\n   -> process job\n   -> ack success\n   -> retry/nack failure\n   -> move to DLQ after max attempts\n```\n\n## 2. Reliable enqueueing: avoid lost jobs\n\nA common failure mode is:\n\n```text\n1. Save order to database\n2. Crash before enqueueing email job\n3. Email never sent\n```\n\nTo avoid this, use a **transactional outbox**:\n\n```text\nBEGIN TRANSACTION\n  insert order\n  insert outbox_event(type=\"send_email\", payload=...)\nCOMMIT\n```\n\nThen a separate relay process reads the outbox and publishes jobs to the queue.\n\nBenefits:\n\n- Job creation is atomic with business data.\n- No lost jobs if the app crashes after commit.\n- Easier recovery and replay.\n\nTrade-off:\n\n- Adds an extra table and relay process.\n- Slightly more operational complexity.\n\n## 3. Delivery semantics\n\nMost queues give you **at-least-once delivery**:\n\n- A worker may receive the same job more than once.\n- A worker may crash after processing but before acknowledging.\n- A retry may happen even if the first attempt succeeded.\n\nExactly-once delivery is usually an illusion unless the whole system is designed around idempotent processing or transactional consumers.\n\nPractical rule:\n\n> Assume every job may be delivered more than once. Make processing safe to repeat.\n\n## 4. Idempotency\n\nIdempotency means processing the same job multiple times produces the same final result.\n\nExample: sending an email.\n\nBad:\n\n```text\nprocess job\n  send email\n  crash before ack\n  job retried\n  email sent again\n```\n\nBetter:\n\n```text\nprocess job\n  check if email_sent_for(order_id)\n  if not sent:\n    send email\n    mark email_sent_for(order_id)\n  ack job\n```\n\nCommon idempotency strategies:\n\n### Unique job ID\n\nEvery job has a stable ID:\n\n```json\n{\n  \"job_id\": \"uuid\",\n  \"type\": \"send_email\",\n  \"payload\": {\n    \"order_id\": \"123\"\n  }\n",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 3
+        },
+        {
+          "ttft_s": 0.1072,
+          "elapsed_s": 3.7764,
+          "output_tokens": 1024,
+          "output_per_total_s": 271.16,
+          "estimated_decode_tok_s": 279.08,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 35,
+            "completion_tokens": 1024,
+            "total_tokens": 1059,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          },
+          "text": "The user asks for a production-ready Python LRU cache and comprehensive tests, plus explanation of complexity and edge cases. Need provide code and explanation. Need ensure correctness.\n\nDesign: OrderedDict-based LRU. Thread-safe with lock. Support maxsize, optional ttl? Production-ready maybe include maxsize, get/put/delete/clear, stats, thread-safe, OrderedDict move_to_end. Avoid unbounded. Handle maxsize<=0, key unhashable? Python dict handles. Use __slots__? Keep simple.\n\nNeed mention complexity: O(1) get/put/delete amortized, O(n) clear, memory O(n). Edge cases: maxsize=0 means no caching? Decide: maxsize must be positive int; raise ValueError. get with default, contains, __contains__, __len__, __iter__? Keep minimal but robust.\n\nThread safety: use threading.RLock. get moves to end. put: if key exists, update value and move to end; else insert and evict oldest if over capacity. Return value? put returns None. delete returns bool. clear resets. stats hits/misses/evictions.\n\nTests: unittest or pytest. Provide pytest-style tests. Cover basic, capacity eviction, recency update on get, update existing, delete, clear, maxsize validation, thread safety smoke test, default get, no stale after eviction, iteration? Avoid too much.\n\nNeed final answer with code block and explanation. Mention not using functools.lru_cache because need thread-safe/stats/ttl. Mention ttl optional maybe not implement to keep focused. Could include optional ttl? Production-ready maybe include maxsize and optional ttl. But complexity increases. Keep core LRU plus optional ttl? User didn't ask ttl. Avoid scope creep.\n\nNeed ensure code is valid. Use OrderedDict.\n\nPotential issue: OrderedDict move_to_end on existing key in get. In put existing: value = self._data[key]; self._data[key]=value; move_to_end. Good.\n\nThread-safe stats increments inside lock.\n\nTests with pytest: import pytest. Thread test: create cache maxsize=100, threads increment? Simpler: many threads get/put same keys, assert len<=maxsize and stats consistent. Avoid flaky.\n\nNeed final concise but complete.Below is a thread-safe, `OrderedDict`-backed LRU cache plus a pytest suite.\n\n```python\nfrom __future__ import annotations\n\nimport threading\nfrom collections import OrderedDict\nfrom typing import Any, Hashable, Iterator, Optional\n\n\nclass LRUCache:\n    \"\"\"\n    Thread-safe least-recently-used cache.\n\n    - O(1) get/put/delete/contains (amortized)\n    - Bounded by maxsize\n    - Tracks hits/misses/evictions\n    \"\"\"\n\n    def __init__(self, maxsize: int):\n        if not isinstance(maxsize, int) or isinstance(maxsize, bool):\n            raise TypeError(\"maxsize must be an int\")\n        if maxsize < 1:\n            raise ValueError(\"maxsize must be >= 1\")\n\n        self._maxsize = maxsize\n        self._data: OrderedDict[Hashable, Any] = OrderedDict()\n        self._lock = threading.RLock()\n\n        self._hits = 0\n        self._misses = 0\n        self._evictions = 0\n\n    @property\n    def maxsize(self) -> int:\n        return self._maxsize\n\n    def __len__(self) -> int:\n        with self._lock:\n            return len(self._data)\n\n    def __contains__(self, key: Hashable) -> bool:\n        with self._lock:\n            return key in self._data\n\n    def __iter__(self) -> Iterator[Hashable]:\n        with self._lock:\n            return iter(list(self._data.keys()))\n\n    def get(self, key: Hashable, default: Any = None) -> Any:\n        with self._lock:\n            if key not in self._data:\n                self._misses += 1\n                return default\n            self._hits += 1\n            self._",
+          "prompt": "Implement a production-ready Python LRU cache and a comprehensive suite of tests. Explain complexity and edge cases.",
+          "iteration": 3
+        }
+      ],
+      "wall_s": 4.2905,
+      "aggregate_tok_s": 477.34
+    }
+  ]
+}

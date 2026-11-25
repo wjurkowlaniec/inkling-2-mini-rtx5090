@@ -1,0 +1,175 @@
+{
+  "url": "http://127.0.0.1:6022",
+  "concurrency": 1,
+  "method": "six public prompts, one run each, temperature 0, max 3072, EOS allowed; heuristic checks are not comprehensive quality tests. Estimated decode uses first visible chunk to end of stream; includes parser/HTTP delays.",
+  "batches": [
+    {
+      "wall_s": 2.0499,
+      "aggregate_tok_s": 445.88,
+      "requests": [
+        {
+          "task": "python",
+          "prompt": "Write a complete Python implementation of an in-memory TTL cache using time.monotonic, with get, set and eviction behavior. Explain complexity and include a short usage example.",
+          "ttft_s": 0.0661,
+          "elapsed_s": 2.0499,
+          "output_tokens": 914,
+          "estimated_decode_tok_s": 460.73,
+          "output_per_total_s": 445.88,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "```python\nimport time\nfrom typing import Any, Dict, Optional, Tuple\n\n_MISSING = object()\n\nclass TTLCache:\n    def __init__(self):\n        self._store: Dict[Any, Tuple[Any, float]] = {}\n\n    def get(self, key: Any, default: Any = None) -> Any:\n        item = self._store.get(key, _MISSING)\n        if item is _MISSING:\n            return default\n        value, expires_at = item\n        if time.monotonic() >= expires_at:\n            del self._store[key]\n            return default\n        return value\n\n    def set(self, key: Any, value: Any, ttl: float) -> None:\n        if ttl <= 0:\n            self._store.pop(key, None)\n            return\n        self._store[key] = (value, time.monotonic() + ttl)\n\n    def delete(self, key: Any) -> None:\n        self._store.pop(key, None)\n\n    def clear(self) -> None:\n        self._store.clear()\n\n    def purge_expired(self) -> int:\n        now = time.monotonic()\n        expired = [k for k, (_, exp) in self._store.items() if now >= exp]\n        for k in expired:\n            del self._store[k]\n        return len(expired)\n\n    def __len__(self) -> int:\n        self.purge_expired()\n        return len(self._store)\n```\n\nExample:\n\n```python\ncache = TTLCache()\ncache.set(\"user:1\", {\"name\": \"Ada\"}, ttl=5.0)\n\nprint(cache.get(\"user:1\"))   # {'name': 'Ada'}\ntime.sleep(6)\nprint(cache.get(\"user:1\", \"missing\"))  # missing\n```\n\nBehavior: entries expire lazily on `get`; `purge_expired()`/`__len__` can eagerly remove stale entries. `time.monotonic()` is used so wall-clock changes do not affect TTL.\n\nComplexity: average `O(1)` time for `get`/`set`/`delete`, `O(n)` space for `n` live entries, `O(n)` for `purge_expired()`. This is not thread-safe by default; add a lock if used across threads.",
+          "reasoning": "The user asks for a complete Python implementation of an in-memory TTL cache using time.monotonic, with get, set and eviction behavior. Explain complexity and include a short usage example. This is a benign coding request. Need produce final answer with code and explanation. Need ensure correctness.\n\nDesign: dict mapping key -> (value, expires_at). get(key): now=monotonic; item=dict.get(key); if none return None (or default); if now >= expires_at: del; return default; else return value. set(key,value,ttl): validate ttl>0? expires_at=now+ttl; dict[key]=(value,expires_at). Eviction: lazy on get; optional cleanup method. Could include __len__ that purges expired. Complexity: get/set O(1) average, space O(n), cleanup O(n). Mention monotonic avoids wall-clock changes. Thread safety optional note. Include example.\n\nNeed be careful: time.monotonic returns float seconds. Use default parameter maybe sentinel to distinguish missing vs None. Use typing. Provide complete code.\n\nNeed final concise but complete. No need mention policy. Ensure no hidden CoT. Provide code block.",
+          "usage": {
+            "prompt_tokens": 51,
+            "completion_tokens": 914,
+            "total_tokens": 965,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "wall_s": 0.2654,
+      "aggregate_tok_s": 376.79,
+      "requests": [
+        {
+          "task": "reason",
+          "prompt": "A service processes 4800 jobs in 8 minutes at a constant rate. How many jobs in 15 minutes? Show the calculation and give the final integer.",
+          "ttft_s": 0.0555,
+          "elapsed_s": 0.2654,
+          "output_tokens": 100,
+          "estimated_decode_tok_s": 476.53,
+          "output_per_total_s": 376.79,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "Rate = 4800 jobs \u00f7 8 minutes = 600 jobs/minute  \nJobs in 15 minutes = 600 \u00d7 15 = 9000  \n\nFinal integer: 9000",
+          "reasoning": "The user wants a calculation. Rate = 4800 jobs / 8 min = 600 jobs/min. In 15 min: 600*15 = 9000 jobs. Need show calculation and final integer. Ensure no hidden trick. Provide concise.",
+          "usage": {
+            "prompt_tokens": 46,
+            "completion_tokens": 100,
+            "total_tokens": 146,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "wall_s": 0.3056,
+      "aggregate_tok_s": 445.05,
+      "requests": [
+        {
+          "task": "extract",
+          "prompt": "From this incident note extract the exact incident ID and affected component. Note: At 10:42 UTC, incident ZX-2481 affected the payments-worker after a deployment; search-api was healthy. Return a concise answer.",
+          "ttft_s": 0.0594,
+          "elapsed_s": 0.3056,
+          "output_tokens": 136,
+          "estimated_decode_tok_s": 552.37,
+          "output_per_total_s": 445.05,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "Incident ID: ZX-2481; affected component: payments-worker",
+          "reasoning": "The user asks to extract exact incident ID and affected component from incident note. Need answer concise. Need identify incident ID and affected component. Text: \"At 10:42 UTC, incident ZX-2481 affected the payments-worker after a deployment; search-api was healthy.\" Incident ID: ZX-2481. Affected component: payments-worker. Need concise answer. Ensure no extra. Could say \"Incident ID: ZX-2481; affected component: payments-worker.\" That's it.",
+          "usage": {
+            "prompt_tokens": 62,
+            "completion_tokens": 136,
+            "total_tokens": 198,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "wall_s": 2.2007,
+      "aggregate_tok_s": 409.87,
+      "requests": [
+        {
+          "task": "sql",
+          "prompt": "Write a PostgreSQL query for daily revenue in 2025 from orders(created_at timestamptz, amount numeric, status text), counting only paid orders and ordering by day. Briefly explain the timezone choice.",
+          "ttft_s": 0.0606,
+          "elapsed_s": 2.2007,
+          "output_tokens": 902,
+          "estimated_decode_tok_s": 421.48,
+          "output_per_total_s": 409.87,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "```sql\nSELECT (created_at AT TIME ZONE 'America/New_York')::date AS day,\n       SUM(amount) AS revenue\nFROM orders\nWHERE status = 'paid'\n  AND (created_at AT TIME ZONE 'America/New_York')::date >= DATE '2025-01-01'\n  AND (created_at AT TIME ZONE 'America/New_York')::date <  DATE '2026-01-01'\nGROUP BY 1\nORDER BY 1;\n```\n\nUse an explicit business timezone rather than the session/server default: `created_at` is `timestamptz` (absolute UTC instant), but \u201cdaily revenue\u201d is usually a business-calendar concept. Bucketing in `America/New_York` keeps orders on the local day they were placed; using UTC or the session zone can shift revenue across midnight, especially around DST. Swap the zone for your actual business timezone.",
+          "reasoning": "The user asks for a PostgreSQL query for daily revenue in 2025 from orders(created_at timestamptz, amount numeric, status text), counting only paid orders and ordering by day. Briefly explain timezone choice.\n\nNeed answer with query and brief explanation. Need be careful: timezone choice. Since created_at timestamptz, daily buckets depend on timezone. Best practice: choose business timezone explicitly (e.g., America/New_York) and use date_trunc('day', created_at AT TIME ZONE 'America/New_York')? Need correct semantics.\n\nIn Postgres, timestamptz stored UTC. date_trunc('day', created_at) uses session timezone for display? Actually date_trunc on timestamptz returns timestamptz? Let's recall: date_trunc(text, timestamp) returns timestamp; date_trunc(text, timestamptz) returns timestamptz. It truncates in the timezone of the input? For timestamptz, date_trunc returns timestamptz with value truncated in session timezone? Need precise.\n\nCommon pattern:\nSELECT date_trunc('day', created_at AT TIME ZONE 'America/New_York') AS day, SUM(amount)\nFROM orders\nWHERE status='paid' AND created_at >= '2025-01-01'::timestamptz AND created_at < '2026-01-01'::timestamptz\nGROUP BY 1\nORDER BY 1;\n\nBut `created_at AT TIME ZONE 'America/New_York'` converts timestamptz to timestamp (local wall-clock in that zone), then date_trunc on timestamp gives timestamp local day. Good. Filtering 2025: if business year in local zone, better filter local date: `(created_at AT TIME ZONE 'America/New_York')::date BETWEEN '2025-01-01' AND '2025-12-31'`. That avoids UTC boundary issues. Then group by local date.\n\nQuery:\nWITH tz AS (SELECT 'America/New_York'::text AS zone)\nSELECT (created_at AT TIME ZONE zone)::date AS day,\n       SUM(amount) AS revenue\nFROM orders, tz\nWHERE status = 'paid'\n  AND (created_at AT TIME ZONE zone)::date >= DATE '2025-01-01'\n  AND (created_at AT TIME ZONE zone)::date < DATE '2026-01-01'\nGROUP BY 1\nORDER BY 1;\n\nNeed mention if you want UTC, use `created_at AT TIME ZONE 'UTC'` or `date_trunc('day', created_at)` with timezone set. Explain: timestamptz is absolute; daily revenue is a business-calendar concept, so bucket in business timezone; otherwise UTC days can shift revenue across local midnights (DST etc). Use explicit zone not session/server default for reproducibility.\n\nNeed ensure no hidden CoT in final. Provide concise. Mention status exact 'paid' maybe case-insensitive if needed. Keep brief.",
+          "usage": {
+            "prompt_tokens": 58,
+            "completion_tokens": 902,
+            "total_tokens": 960,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "wall_s": 4.5724,
+      "aggregate_tok_s": 387.98,
+      "requests": [
+        {
+          "task": "design",
+          "prompt": "Design an idempotent webhook handler with retries, an outbox, error monitoring, and safeguards against duplicate messages. Give concrete implementation steps.",
+          "ttft_s": 0.0542,
+          "elapsed_s": 4.5724,
+          "output_tokens": 1774,
+          "estimated_decode_tok_s": 392.64,
+          "output_per_total_s": 387.98,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "Below is a practical design you can implement in a typical service (API + worker + DB + queue).\n\n## 1) Core principles\n- Treat webhooks as **at-least-once**, not exactly-once.\n- Make the handler **idempotent** using a stable key.\n- Persist the event and side effects in the **same transaction** where possible.\n- Use an **outbox** to reliably publish downstream events.\n- Retry with backoff; dead-letter after max attempts.\n- Monitor failures, latency, duplicates, and outbox lag.\n\n## 2) Recommended architecture\n- **Webhook endpoint**: receives POST, validates signature, stores event, returns 2xx quickly.\n- **Inbox/event table**: records incoming webhooks.\n- **Outbox table**: records events to publish.\n- **Worker/consumer**: processes events and publishes outbox messages.\n- **Queue/broker**: Kafka/SQS/RabbitMQ/etc.\n- **Monitoring**: logs, metrics, traces, alerts.\n\n## 3) Data model\nCreate tables like:\n\n```sql\nwebhook_events (\n  id uuid primary key,\n  provider text not null,\n  provider_event_id text not null,\n  event_type text not null,\n  payload jsonb not null,\n  status text not null default 'received', -- received, processing, completed, failed\n  received_at timestamptz not null default now(),\n  processed_at timestamptz,\n  unique (provider, provider_event_id)\n);\n\noutbox_messages (\n  id uuid primary key,\n  aggregate_id text not null,\n  event_type text not null,\n  payload jsonb not null,\n  status text not null default 'pending', -- pending, published, failed\n  created_at timestamptz not null default now(),\n  published_at timestamptz,\n  attempts int not null default 0\n);\n\nprocessed_webhooks (\n  provider text not null,\n  provider_event_id text not null,\n  processed_at timestamptz not null default now(),\n  primary key (provider, provider_event_id)\n);\n```\n\n## 4) Concrete implementation steps\n\n### Step 1: Receive and validate the webhook\n- Verify provider signature/HMAC.\n- Reject invalid payloads with 400/401.\n- Extract a stable idempotency key:\n  - Prefer provider event ID, e.g. `provider_event_id`.\n  - If unavailable, hash the raw body + timestamp + provider.\n- Do not do heavy work in the request path.\n\n### Step 2: Store the event transactionally\nIn one DB transaction:\n1. Insert into `webhook_events`.\n2. Insert into `processed_webhooks` or mark as received.\n3. Insert any required outbox messages.\n4. Commit.\n\nIf the unique constraint fails, treat it as a duplicate and return success.\n\nExample logic:\n```text\nif insert webhook_events fails due to duplicate:\n    return 200 OK\nelse:\n    commit\n    return 202 Accepted\n```\n\n### Step 3: Process asynchronously\nUse a worker to:\n- Load pending events.\n- Apply business logic.\n- Mark event completed.\n- On failure, increment retry count and schedule retry.\n\n### Step 4: Make business logic idempotent\nEvery side effect should be safe to repeat:\n- Use upserts instead of blind inserts.\n- Use unique constraints for external records.\n- Store processed external IDs.\n- Avoid double-charging, double-sending, double-creating.\n\nExample:\n```text\nif order already exists for provider_event_id:\n    skip creation\nelse:\n    create order\n```\n\n### Step 5: Use the outbox pattern\nWhen the webhook handler changes state, write the outgoing event to `outbox_messages` in the same transaction.\n\nThen a separate publisher:\n- Reads pending outbox rows.\n- Publishes to broker.\n- Marks them published.\n- Retries failed publishes.\n\nThis avoids the classic problem: \u201cDB committed but message never sent.\u201d\n\n### Step 6: Add retries with backoff\nFor processing and publishing:\n- Retry transient failures: network errors, timeouts, temporary 5xx.\n- Use exponential backoff with jitter.\n- Cap retries.\n- Move permanent failures to a dead-letter queue.\n\nExample:\n```text\nattempt 1: immediate\nattempt 2: 5s\nattempt 3: 30s\nattempt 4: 2m\nattempt 5: 10m\nthen: dead-letter\n```\n\n### Step 7: Add duplicate safeguards\nUse multiple layers:\n- Unique constraint on `(provider, provider_event_id)`.\n- Idempotency key in downstream APIs.\n- Deduplication table for processed events.\n- Broker-level idempotency where supported.\n- Unique constraints on business records.\n\nDo not rely on only one layer.\n\n### Step 8: Add error monitoring\nTrack:\n- Webhook receipt rate.\n- Duplicate rate.\n- Processing success/failure rate.\n- Retry count.\n- Outbox lag.\n- Dead-letter count.\n- Latency from receipt to completion.\n\nAlert on:\n- Sudden spike in failures.\n- Outbox backlog growth.\n- Dead-letter queue growth.\n- Repeated provider-specific failures.\n\n### Step 9: Add observability\nLog structured events:\n```json\n{\n  \"event_id\": \"...\",\n  \"provider\": \"...\",\n  \"provider_event_id\": \"...\",\n  \"status\": \"completed\",\n  \"attempt\": 2,\n  \"duration_ms\": 143\n}\n```\n\nAdd traces across:\n- Webhook endpoint\n- DB transaction\n- Worker processing\n- Outbox publisher\n- Downstream API calls\n\n### Step 10: Add manual recovery path\nProvide:\n- Admin endpoint to replay failed events.\n- Dead-letter inspection UI/CLI.\n- Manual retry button for failed outbox messages.\n- Ability to reprocess by provider event ID.\n\n## 5) Minimal flow\n```text\nWebhook POST\n  -> validate signature\n  -> insert webhook_events\n  -> insert outbox_messages\n  -> commit\n  -> return 202\n\nWorker\n  -> fetch pending event\n  -> process business logic\n  -> mark completed\n  -> publish outbox\n  -> mark outbox published\n\nFailure\n  -> retry with backoff\n  -> dead-letter after max attempts\n```\n\n## 6) Important caveats\n- \u201cExactly once\u201d is usually not truly achievable across systems; design for **effectively-once** via idempotency.\n- Returning 2xx before processing is fine, but only if the event is durably stored first.\n- Do not publish to the broker before the DB commit unless you have a reliable outbox/inbox pattern.\n- Signature validation and duplicate handling must happen before business logic.\n\nIf you want, I can also turn this into a concrete implementation plan for a specific stack, such as Node.js + Postgres + Redis, Python + FastAPI + Postgres + RabbitMQ, or Go + Postgres + Kafka.",
+          "reasoning": "The user asks for design of idempotent webhook handler with retries, outbox, error monitoring, duplicate safeguards, concrete implementation steps. This is a technical design question. Need answer with concrete steps. Need ensure no hidden CoT in final. Provide architecture, steps, code-ish examples, idempotency keys, outbox pattern, retry/backoff, monitoring, duplicate handling. Mention exactly-once semantics caveats. Keep moderate detail.",
+          "usage": {
+            "prompt_tokens": 44,
+            "completion_tokens": 1774,
+            "total_tokens": 1818,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "wall_s": 0.2536,
+      "aggregate_tok_s": 445.55,
+      "requests": [
+        {
+          "task": "json",
+          "prompt": "Return only a JSON object with keys city and values. city must be Warsaw; values must contain exactly the integers 2, 3, 5 in that order.",
+          "ttft_s": 0.0567,
+          "elapsed_s": 0.2536,
+          "output_tokens": 113,
+          "estimated_decode_tok_s": 573.78,
+          "output_per_total_s": 445.55,
+          "finish_reason": "stop",
+          "stream_done": true,
+          "basic_check_passed": true,
+          "content": "{\"city\":\"Warsaw\",\"values\":[2,3,5]}",
+          "reasoning": "The user wants only a JSON object with keys city and values. city must be Warsaw; values must contain exactly integers 2,3,5 in that order. Need output only JSON object. Need ensure valid JSON. Keys: \"city\" and \"values\". city value \"Warsaw\". values array [2,3,5]. No extra text. Need final only JSON. Ensure no markdown.",
+          "usage": {
+            "prompt_tokens": 48,
+            "completion_tokens": 113,
+            "total_tokens": 161,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
