@@ -1,6 +1,8 @@
-# Inkling 2 Mini Uncensored on RTX 5090
+# Inkling 2 Mini on RTX 5090
 
-A tested, single-GPU SGLang configuration for [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored): 128k context, image input, tool calling, native DSpark speculative decoding, and up to two concurrent requests. The model is downloaded separately and is not included in this repository.
+A single-GPU SGLang configuration for the official [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini): 128k context, image input, tool calling, native DSpark speculative decoding, and up to two concurrent requests. It also supports [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). The checkpoint is downloaded separately and is not included in this repository.
+
+Both checkpoints use the same model architecture, weight format and bundled DSpark draft, so the same serving configuration is expected to work. The uncensored version modifies attention weights to reduce refusals; it is not identical in behavior to the official checkpoint. **The measurements and end-to-end tests below were performed on the uncensored checkpoint; this exact configuration has not yet been independently tested here with the official checkpoint.**
 
 ## Hardware and requirements
 
@@ -15,15 +17,24 @@ This is a setup for an RTX 5090, not a guarantee that the same flags work on oth
 
 ```bash
 python -m pip install --user -U huggingface_hub
-mkdir -p models/Inkling-2-Mini-Uncensored cache/sglang
-hf download OpenUncensored/Inkling-2-Mini-Uncensored \
-  --local-dir models/Inkling-2-Mini-Uncensored
+mkdir -p models/Inkling-2-Mini cache/sglang
+hf download thinkingmachines/Inkling-2-Mini \
+  --local-dir models/Inkling-2-Mini
 
 docker compose up -d
 docker compose logs -f
 ```
 
 The first start may take several minutes while GPU kernels and CUDA graphs are compiled. To reuse an existing checkpoint, set `MODEL_DIR` to its absolute path before starting. `CACHE_DIR` optionally selects the persistent SGLang cache directory. Neither the checkpoint nor the cache is tracked by Git.
+
+To use the uncensored checkpoint instead, download it and select its directory before starting:
+
+```bash
+hf download OpenUncensored/Inkling-2-Mini-Uncensored \
+  --local-dir models/Inkling-2-Mini-Uncensored
+export MODEL_DIR="$(pwd)/models/Inkling-2-Mini-Uncensored"
+docker compose up -d
+```
 
 Check readiness and ask a question:
 
@@ -38,7 +49,7 @@ The API binds to **127.0.0.1** and has no authentication. It is intentionally on
 
 ## Measured results
 
-Measurements on one RTX 5090 on 2026-11-21, with the pinned image and this model. Results depend on prompt, context, sampling, batching and hardware. Output token counts include reasoning tokens when applicable.
+Measurements on one RTX 5090 on 2026-11-21, with the pinned image and the **uncensored checkpoint**. The official checkpoint has not been separately benchmarked in this setup. Results depend on prompt, context, sampling, batching and hardware. Output token counts include reasoning tokens when applicable.
 
 | Measurement | Result | Method |
 | --- | --- | --- |
@@ -65,8 +76,8 @@ The speed script forces 1,024 output tokens and writes a local, ignored results 
 - The tested setup allocated approximately 137,984 full-attention KV slots **shared across requests** and 6,784 sliding-window slots. Two independent 96k contexts cannot both fit in that pool at once; requests may wait or cached entries may be evicted. Shared prefixes can reduce memory use.
 - The long-context tests are narrow retrieval checks, not comprehensive long-context accuracy or sustained-load evaluations. Test on your own workloads.
 - BF16 KV is intentional: the image's FA4 FP8 path rejected SM120 in our MXFP8 KV attempt. Reducing DSpark's draft block was also rejected by the fixed checkpoint. These observations apply to the pinned build, not necessarily newer releases.
-- Vision and tools are enabled in the server. Multimodal long-context and a simple read/repair/test tool-call sequence were checked.
+- Vision and tools are enabled in the server. Multimodal long-context and a simple read/repair/test tool-call sequence were checked with the uncensored checkpoint.
 
 ## Credits
 
-Model: [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored), based on [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini). Server and day-zero image: [SGLang](https://github.com/sgl-project/sglang). Model licensing is described in its Hugging Face repository.
+Model: [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini); optional variant: [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). Server and day-zero image: [SGLang](https://github.com/sgl-project/sglang). Model licensing is described in its Hugging Face repository.

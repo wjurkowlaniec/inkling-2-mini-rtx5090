@@ -12,7 +12,7 @@ services:
       SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE: '1'
       SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS: '1'
     volumes:
-      - ${MODEL_DIR:-./models/Inkling-2-Mini-Uncensored}:/model:ro
+      - ${MODEL_DIR:-./models/Inkling-2-Mini}:/model:ro
       - ${CACHE_DIR:-./cache/sglang}:/root/.cache/sglang
     deploy:
       resources:
