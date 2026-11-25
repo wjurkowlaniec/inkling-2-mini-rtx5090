@@ -61,6 +61,25 @@ Measurements on one RTX 5090 on 2026-11-21, with the pinned image and the **unce
 
 In one later real-use log sample, prompt-processing batches of at least 512 tokens had a median of ~11,558 tok/s, and single-request generation samples a median of ~213 tok/s. These are sampled server throughput values, not complete-request benchmarks or guaranteed speeds. In another earlier observation, two active requests yielded ~351 output tok/s combined at the median; workloads differed. Full numerical test artifacts are in [`benchmarks/`](benchmarks/).
 
+### Local-models context sweep (2026-11-25)
+
+Three single-request trials per prompt length, 512 output tokens, temperature 0, unique randomized user prefix and repetitive synthetic filler. TTFT is measured at the client and includes queueing, transport and prefill. TG is estimated from all output tokens divided by the time between the first visible chunk and the end of the stream; this includes end-of-stream overhead. Reasoning tokens are included. The live server could receive other traffic during the test. Results are for the **uncensored** checkpoint; the official checkpoint was not separately tested.
+
+| Prompt tokens (median, including template) | TTFT median | Estimated TG median |
+| ---: | ---: | ---: |
+| 1,025 | 0.151 s | 167 tok/s |
+| 16,026 | 1.137 s | 197 tok/s |
+| 30,023 | 2.262 s | 226 tok/s |
+| 60,025 | 5.157 s | 229 tok/s |
+
+Full measurements and per-run usage are in [`benchmarks/results/inkling-uncensored-rtx5090.json`](benchmarks/results/inkling-uncensored-rtx5090.json). This benchmark is adapted from the local-models streaming context sweep; prompt lengths are measured by the server tokenizer and are approximate targets. `reasoning_effort: none` was requested, but the server still reported reasoning tokens.
+
+Reproduce the context sweep (creates load on the running server):
+
+```bash
+python benchmarks/benchmark_generation.py --iterations 3 --output-tokens 512
+```
+
 Reproduce the fixed-output and synthetic retrieval checks against a running server:
 
 ```bash
