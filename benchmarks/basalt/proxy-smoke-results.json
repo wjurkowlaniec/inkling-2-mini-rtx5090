@@ -1,0 +1,38 @@
+{
+  "vision": "passed",
+  "tool_roundtrip": "passed",
+  "parallel_streams": [
+    {
+      "expected": "AMBER-1234",
+      "response": {
+        "content": "AMBER-1234",
+        "reasoning_chars": 260,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 75,
+          "total_tokens": 100,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "done": true
+      }
+    },
+    {
+      "expected": "PLUM-9876",
+      "response": {
+        "content": "PLUM-9876",
+        "reasoning_chars": 240,
+        "usage": {
+          "prompt_tokens": 25,
+          "completion_tokens": 67,
+          "total_tokens": 92,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "done": true
+      }
+    }
+  ]
+}
