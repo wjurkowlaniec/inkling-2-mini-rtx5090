@@ -1,0 +1,102 @@
+{
+  "method": "single-request streaming, uncached randomized user prefix, temperature 0; TTFT includes queue/prefill; decode includes stream-end overhead and is an estimate",
+  "url": "http://127.0.0.1:6020",
+  "iterations": 1,
+  "concurrency": 3,
+  "output_tokens_requested": 512,
+  "summaries": [
+    {
+      "target_content_tokens": 60000,
+      "actual_prompt_tokens_median": 60023,
+      "ttft_s_median": 10.391,
+      "estimated_decode_tok_s_median": 237.77,
+      "completion_tokens": [
+        512,
+        512,
+        512
+      ],
+      "aggregate_completion_tok_s_median": 77.88,
+      "batch_wall_s_median": 19.722
+    }
+  ],
+  "batches": [
+    {
+      "target_content_tokens": 60000,
+      "iteration": 1,
+      "concurrency": 3,
+      "wall_s": 19.7222,
+      "aggregate_completion_tok_s": 77.88
+    }
+  ],
+  "runs": [
+    {
+      "target_content_tokens": 60000,
+      "actual_content_tokens": 60009,
+      "usage": {
+        "prompt_tokens": 60022,
+        "total_tokens": 60534,
+        "completion_tokens": 512,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 247,
+        "completion_tokens_details": {
+          "reasoning_tokens": 247
+        }
+      },
+      "ttft_s": 10.3911,
+      "total_s": 12.5444,
+      "visible_decode_s": 2.1531,
+      "first_to_end_s": 2.1533,
+      "estimated_output_tokens_per_s": 237.77,
+      "finish_reason": "length",
+      "stream_done": true,
+      "iteration": 1,
+      "request_index": 1
+    },
+    {
+      "target_content_tokens": 60000,
+      "actual_content_tokens": 60010,
+      "usage": {
+        "prompt_tokens": 60023,
+        "total_tokens": 60535,
+        "completion_tokens": 512,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 512,
+        "completion_tokens_details": {
+          "reasoning_tokens": 512
+        }
+      },
+      "ttft_s": 17.723,
+      "total_s": 19.7221,
+      "visible_decode_s": 1.9989,
+      "first_to_end_s": 1.999,
+      "estimated_output_tokens_per_s": 256.13,
+      "finish_reason": "length",
+      "stream_done": true,
+      "iteration": 1,
+      "request_index": 2
+    },
+    {
+      "target_content_tokens": 60000,
+      "actual_content_tokens": 60012,
+      "usage": {
+        "prompt_tokens": 60025,
+        "total_tokens": 60537,
+        "completion_tokens": 512,
+        "prompt_tokens_details": null,
+        "reasoning_tokens": 344,
+        "completion_tokens_details": {
+          "reasoning_tokens": 344
+        }
+      },
+      "ttft_s": 10.3912,
+      "total_s": 18.0631,
+      "visible_decode_s": 7.6717,
+      "first_to_end_s": 7.6719,
+      "estimated_output_tokens_per_s": 66.74,
+      "finish_reason": "length",
+      "stream_done": true,
+      "iteration": 1,
+      "request_index": 3
+    }
+  ]
+}

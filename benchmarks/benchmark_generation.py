@@ -5,9 +5,11 @@ Uses SGLang /tokenize, avoiding a local tokenizer dependency. Fresh random promp
 prefixes prevent prefix-cache reuse across trials. Times include network and queueing.
 """
 import argparse
+import concurrent.futures
 import json
 import secrets
 import statistics
+import threading
 import time
 import urllib.request
 from pathlib import Path
@@ -28,14 +30,16 @@ def prompt_for_size(base, target):
     return prompt, count
 
 
-def trial(base, target, output_tokens):
-    prompt, content_count = prompt_for_size(base, target)
+def trial(base, target, output_tokens, prepared=None, barrier=None):
+    prompt, content_count = prepared if prepared is not None else prompt_for_size(base, target)
     payload = {'model':'inkling','messages':[{'role':'user','content':prompt}],
                'temperature':0, 'max_tokens':output_tokens, 'min_tokens':output_tokens,
                'ignore_eos':True, 'stream':True, 'stream_options':{'include_usage':True},
                'chat_template_kwargs':{'reasoning_effort':'none'}}
     req = urllib.request.Request(base+'/v1/chat/completions', json.dumps(payload).encode(),
                                  {'Content-Type':'application/json'})
+    if barrier is not None:
+        barrier.wait(timeout=60)
     start = time.monotonic(); first = last = None; usage = {}; finish = None; done = False
     with urllib.request.urlopen(req, timeout=900) as resp:
         for raw in resp:
@@ -63,7 +67,7 @@ def trial(base, target, output_tokens):
             'usage':usage,'ttft_s':round(first-start,4),'total_s':round(elapsed,4),
             'visible_decode_s':round(visible_decode,4), 'first_to_end_s':round(decode,4),
             'estimated_output_tokens_per_s':round(output/decode,2) if decode > 0 else None,
-            'finish_reason':finish,'stream_done':done}
+            'finish_reason':finish,'stream_done':done, '_start':start, '_end':start+elapsed}
 
 
 def main():
@@ -71,15 +75,30 @@ def main():
     p.add_argument('--url',default='http://127.0.0.1:6020')
     p.add_argument('--sizes',type=int,nargs='+',default=[1000,16000,30000,60000])
     p.add_argument('--iterations',type=int,default=3)
+    p.add_argument('--concurrency',type=int,default=1,help='Number of simultaneous requests; server slot limit still applies')
     p.add_argument('--output-tokens',type=int,default=512)
     p.add_argument('--results',default='benchmark_generation.local.json')
     args=p.parse_args(); base=args.url.rstrip('/')
+    if args.concurrency < 1 or args.iterations < 1:
+        p.error('--concurrency and --iterations must be positive')
     print('Warmup...',flush=True); trial(base,1000,64)
-    runs=[]
+    runs=[]; batches=[]
     for target in args.sizes:
         for i in range(args.iterations):
-            row=trial(base,target,args.output_tokens); row['iteration']=i+1; runs.append(row)
-            print(json.dumps(row),flush=True)
+            prepared=[prompt_for_size(base,target) for _ in range(args.concurrency)]
+            barrier=threading.Barrier(args.concurrency)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=args.concurrency) as pool:
+                futures=[pool.submit(trial,base,target,args.output_tokens,prompt,barrier) for prompt in prepared]
+                rows=[future.result() for future in futures]
+            wall=max(r['_end'] for r in rows)-min(r['_start'] for r in rows)
+            batch={'target_content_tokens':target,'iteration':i+1,'concurrency':args.concurrency,
+                   'wall_s':round(wall,4),
+                   'aggregate_completion_tok_s':round(sum(r['usage']['completion_tokens'] for r in rows)/wall,2)}
+            batches.append(batch)
+            for j,row in enumerate(rows):
+                row.pop('_start'); row.pop('_end'); row['iteration']=i+1; row['request_index']=j+1; runs.append(row)
+                print(json.dumps(row),flush=True)
+            print('BATCH',json.dumps(batch),flush=True)
     summaries=[]
     for size in args.sizes:
         a=[r for r in runs if r['target_content_tokens']==size]
@@ -87,10 +106,12 @@ def main():
            'actual_prompt_tokens_median':statistics.median(r['usage']['prompt_tokens'] for r in a),
            'ttft_s_median':round(statistics.median(r['ttft_s'] for r in a),3),
            'estimated_decode_tok_s_median':round(statistics.median(r['estimated_output_tokens_per_s'] for r in a if r['estimated_output_tokens_per_s'] is not None),2),
-           'completion_tokens':[r['usage']['completion_tokens'] for r in a]})
+           'completion_tokens':[r['usage']['completion_tokens'] for r in a],
+           'aggregate_completion_tok_s_median':round(statistics.median(b['aggregate_completion_tok_s'] for b in batches if b['target_content_tokens']==size),2),
+           'batch_wall_s_median':round(statistics.median(b['wall_s'] for b in batches if b['target_content_tokens']==size),3)})
     result={'method':'single-request streaming, uncached randomized user prefix, temperature 0; TTFT includes queue/prefill; decode includes stream-end overhead and is an estimate',
-            'url':base,'iterations':args.iterations,'output_tokens_requested':args.output_tokens,
-            'summaries':summaries,'runs':runs}
+            'url':base,'iterations':args.iterations,'concurrency':args.concurrency,'output_tokens_requested':args.output_tokens,
+            'summaries':summaries,'batches':batches,'runs':runs}
     Path(args.results).write_text(json.dumps(result,indent=2)+'\n')
     print('SUMMARY',json.dumps(summaries),flush=True)
 

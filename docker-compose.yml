@@ -1,6 +1,7 @@
 services:
   inkling:
-    image: lmsysorg/sglang:inkling-2-mini@sha256:efac853b46811ccb760545b7b29e7119bdf907537ccf6e863fac3011fe8b98de
+    build: .
+    image: inkling-sglang-dflash2:local
     container_name: inkling-rtx5090
     restart: unless-stopped
     network_mode: host
@@ -8,12 +9,11 @@ services:
     entrypoint: ["python", "-m", "sglang.launch_server"]
     environment:
       SGLANG_OPT_INKLING2_VERIFY_REL_BIAS_KERNEL: '1'
-      SGLANG_OPT_DSV41_DSPARK_MID_FOLD: '1'
-      SGLANG_OPT_DSV41_DSPARK_PREPARE_INPUTS_ONCE: '1'
-      SGLANG_OPT_DSV41_DSPARK_SKIP_PREFILLED_INPUTS: '1'
+      SGLANG_ENABLE_DFLASH_DRAFT_KV_RING: '1'
     volumes:
       - ${MODEL_DIR:-./models/Inkling-2-Mini}:/model:ro
       - ${CACHE_DIR:-./cache/sglang}:/root/.cache/sglang
+      - ${DRAFT_DIR:-./models/Inkling-2-Mini-DFlash2}:/draft:ro
     deploy:
       resources:
         reservations:
@@ -25,8 +25,9 @@ services:
       --model-path /model --served-model-name inkling
       --host 127.0.0.1 --port 6020 --tp 1
       --attention-backend fa4 --dtype bfloat16 --page-size 128
-      --context-length 131072 --speculative-algorithm DSPARK
-      --speculative-num-draft-tokens 8 --max-running-requests 2
+      --context-length 131072 --speculative-algorithm DFLASH
+      --speculative-draft-model-path /draft --speculative-draft-attention-backend fa4
+      --speculative-num-draft-tokens 8 --max-running-requests 2 --max-total-tokens 139264
       --mem-fraction-static 0.88 --kv-cache-dtype bf16 --swa-full-tokens-ratio 0.05
       --chunked-prefill-size 1024 --cuda-graph-max-bs-decode 2
       --grammar-backend xgrammar --enable-multimodal
