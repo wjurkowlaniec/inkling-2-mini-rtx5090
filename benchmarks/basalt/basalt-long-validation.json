@@ -1,0 +1,84 @@
+{
+  "long_vision": {
+    "seconds": 16.38,
+    "usage": {
+      "prompt_tokens": 130214,
+      "completion_tokens": 231,
+      "total_tokens": 130445,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "message": {
+      "role": "assistant",
+      "content": "Archive code: WISLA-7429-ZEFIR  \nShapes/colors: red square; blue circle",
+      "reasoning_content": "The user asks: \"Read the image and find the unique archive code in this text. alpha beta gamma delta ... The archive code is WISLA-7429-ZEFIR. alpha beta ...\" They want the code, shapes, and colors.\n\nNeed answer based on image: red square on left, blue circle on right. The text contains archive code WISLA-7429-ZEFIR. Need provide code, shapes, colors.\n\nNeed be careful: The image shows a red square and a blue circle. The unique archive code in text is WISLA-7429-ZEFIR. We can state that.\n\nNo need to mention unable. Provide concise. Ensure not overclaim. The code is given in prompt text; image doesn't contain code. But user says find unique archive code in this text. So answer: WISLA-7429-ZEFIR; shapes: square and circle; colors: red and blue.\n\nNeed final only."
+    },
+    "finish": "stop"
+  },
+  "tool": {
+    "seconds": 0.25,
+    "usage": {
+      "prompt_tokens": 109,
+      "completion_tokens": 83,
+      "total_tokens": 192,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "message": {
+      "role": "assistant",
+      "content": null,
+      "reasoning_content": "The user asks to call the function get_weather for city Warsaw. Need use tool. We can call get_weather with city Warsaw. Then likely report result. Need ensure exact function name and args. Let's call.",
+      "tool_calls": [
+        {
+          "id": "call_9c31fe4592bf47bebd2f7583",
+          "type": "function",
+          "function": {
+            "name": "get_weather",
+            "arguments": "{\"city\":\"Warsaw\"}"
+          }
+        }
+      ]
+    },
+    "finish": "tool_calls"
+  },
+  "parallel_long": [
+    {
+      "seconds": 8.63,
+      "usage": {
+        "prompt_tokens": 60038,
+        "completion_tokens": 145,
+        "total_tokens": 60183,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "message": {
+        "role": "assistant",
+        "content": "SILVER-4167",
+        "reasoning_content": "The user has pasted a long repeated sequence and then says \"Unique key is SILVER-4167.\" and asks \"What is the unique key?\"\n\nThis looks like a prompt-injection-ish or a test where the unique key is explicitly stated in the text: \"Unique key is SILVER-4167.\" The user asks find and repeat the unique key. The answer is SILVER-4167.\n\nNeed be careful: The text includes \"Unique key is SILVER-4167.\" within the user's message. We should repeat it. No need to compute. Final should just give key. Ensure exact format."
+      },
+      "finish": "stop",
+      "marker": "SILVER-4167"
+    },
+    {
+      "seconds": 8.61,
+      "usage": {
+        "prompt_tokens": 60038,
+        "completion_tokens": 136,
+        "total_tokens": 60174,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      },
+      "message": {
+        "role": "assistant",
+        "content": "COPPER-9521",
+        "reasoning_content": "The user has pasted a huge repeated string \"omega theta sigma kappa\" many times, and in the middle there's a sentence: \"Unique key is COPPER-9521.\" Then repeats. They ask \"What is the unique key?\"\n\nNeed answer based on text. The unique key explicitly stated is COPPER-9521. Need be careful: This looks like a prompt injection / data extraction? It's just text. We can repeat. No need to compute repetitions. Need final concise.\n\nEnsure not overcomplicate. Answer: COPPER-9521."
+      },
+      "finish": "stop",
+      "marker": "COPPER-9521"
+    }
+  ]
+}

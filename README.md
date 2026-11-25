@@ -109,6 +109,10 @@ Width 8 remains the default: width 12 improved this artificial repetitive case b
 
 A separate [sampling check](benchmarks/results/dflash2-sampling-2026-11-25.json) on three short raw prompts produced median rates of 261/380/252 tok/s at temperature 0 and 232/249/244 tok/s at temperature 0.7 (prose/code/analysis, respectively). Three seeds per task and temperature; the 512-token cap was reached in these runs. Output tokens divided by complete request time, so the figures include prefill and are not a quality benchmark. Run `python benchmarks/measure_sampling.py` to reproduce against port 6020.
 
+### Experimental Basalt comparison
+
+A separate [Basalt experiment](benchmarks/basalt/README.md) converted the uncensored checkpoint, enabled Vision and two 128k slots, and tested one and two requests. One short chat prompt showed approximately 388 vs 285 estimated decode tok/s for Basalt vs this SGLang setup; paired output over batch time was approximately 494 vs 469 tok/s. The engines use different drafters and numerical precision, and the few requests do not establish equal quality or a general speedup. Basalt is not the default deployment in this repository.
+
 ## Limits and tradeoffs
 
 - Context is 131,072 tokens **including output**. Model reasoning also consumes output tokens; set a sufficient `max_tokens` budget.

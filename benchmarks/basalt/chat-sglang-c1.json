@@ -1,0 +1,88 @@
+{
+  "url": "http://127.0.0.1:6020",
+  "concurrency": 1,
+  "method": "three repeats; chat completions; temperature 0; max 1024; EOS allowed; stream first visible token to stream end estimates; timings include client overhead and two-request overlap. Output may differ by engine.",
+  "batches": [
+    {
+      "requests": [
+        {
+          "ttft_s": 0.0951,
+          "elapsed_s": 3.6826,
+          "output_tokens": 1024,
+          "output_per_total_s": 278.06,
+          "estimated_decode_tok_s": 285.44,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "total_tokens": 1073,
+            "completion_tokens": 1024,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 438,
+            "completion_tokens_details": {
+              "reasoning_tokens": 438
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue, covering retries, idempotency, dead letter queues, monitoring, and trade-offs. Need answer with explanation. Need produce final only. Need ensure content accurate.\n\nPlan structure:\n- Intro: what async job queue is for, reliability goals.\n- Core architecture: producers, broker/queue, workers, storage, visibility timeout, ack/nack, visibility.\n- Design principles: at-least-once vs exactly-once, idempotency, durable storage, ordering, backpressure.\n- Retries: exponential backoff, jitter, max attempts, retry budgets, transient vs permanent errors, delayed retries, DLQ after max.\n- Idempotency: unique job IDs, idempotency keys, dedupe store, natural idempotency, transactional outbox, idempotent consumer, exactly-once illusion.\n- DLQ: purpose, schema, alerting, replay, retention, manual inspection, avoid infinite loops.\n- Monitoring: metrics (depth, age, latency, success/failure, retry rate, DLQ count, worker health), logs/traces, dashboards/alerts, SLOs.\n- Trade-offs: throughput vs latency, durability vs speed, ordering vs parallelism, at-least-once vs exactly-once, push vs pull, managed vs self-hosted, sync vs async.\n- Practical tutorial: step-by-step implementation with pseudo-code/SQL/Redis/SQS-like. Include schema, worker loop, retry logic, DLQ, monitoring.\n- Example code maybe Python pseudo.\n- Checklist.\n\nNeed be detailed but not too huge. Mention exactly-once is hard; use at-least-once + idempotency. Mention visibility timeout and ack after processing. Mention poison messages. Mention outbox pattern for atomic DB+queue. Mention backpressure and autoscaling. Mention graceful shutdown.\n\nNeed answer in final. Ensure no hidden thinking. Done.# Designing a Reliable Asynchronous Job Queue: Practical Tutorial\n\nAn asynchronous job queue lets a system accept work quickly, return a response to the caller, and process the work later. It is useful for emails, payments, image processing, report generation, webhooks, ETL, notifications, and anything that is slow, unreliable, or bursty.\n\nThe core reliability goal is:\n\n> A job should not be lost silently, should not be processed forever in a tight loop, and should be safe to process more than once.\n\nIn practice, most production queues provide **at-least-once delivery**, not true exactly-once delivery. So the design should assume that a job may be delivered more than once and make processing **idempotent**.\n\n---\n\n## 1. Core architecture\n\nA typical queue system has:\n\n- **Producer**: creates a job and enqueues it.\n- **Queue/broker**: stores pending jobs durably.\n- **Worker**: polls or receives jobs and processes them.\n- **Storage**: database, object store, or external system where the job result is written.\n- **Dead letter queue**: stores jobs that failed repeatedly.\n- **Monitoring/alerting**: tracks queue health.\n\nA simple flow:\n\n```text\nAPI request\n   \u2193\nWrite job to queue\n   \u2193\nReturn 202 Accepted / job ID\n   \u2193\nWorker picks up job\n   \u2193\nWorker processes job\n   \u2193\nWorker acknowledges success\n   \u2193\nIf failure: retry or move to DLQ\n```\n\nImportant design rule: **do not mark a job complete before the work is safely done**. Acknowledge only after the side effect is committed or made idempotent.\n\n---\n\n## 2. Delivery semantics: at-least-once vs exactly-once\n\n### At-least-once\n\nThe broker may deliver a job more than once. This is common and usually the right default.\n\nExample:\n\n1. Worker receives job.\n2. Worker processes it.\n3. Worker crashes before acknowledging.\n4. Broker redelivers the job.\n5. Worker processes it again.\n\nThis is safe if processing is idempotent.\n\n### Exactly-once\n\nTrue exactly-once processing across a database, queue, and external API is hard. Most systems approximate it using:\n\n- Idempotency keys\n- Deduplication tables\n- Transactional outbox\n- Unique constraints\n- Acknowledgement after commit\n\nDo not rely on \u201cexactly-once\u201d as a magic property. Design for at-least-once delivery.\n\n---\n\n## 3. Job model\n\nA job should contain enough information",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 1
+        }
+      ],
+      "wall_s": 3.6826,
+      "aggregate_tok_s": 278.06
+    },
+    {
+      "requests": [
+        {
+          "ttft_s": 0.0846,
+          "elapsed_s": 3.6859,
+          "output_tokens": 1024,
+          "output_per_total_s": 277.82,
+          "estimated_decode_tok_s": 284.34,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "total_tokens": 1073,
+            "completion_tokens": 1024,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 438,
+            "completion_tokens_details": {
+              "reasoning_tokens": 438
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue, covering retries, idempotency, dead letter queues, monitoring, and trade-offs. Need answer with explanation. Need produce final only. Need ensure content accurate.\n\nPlan structure:\n- Intro: what async job queue is for, reliability goals.\n- Core architecture: producers, broker/queue, workers, storage, visibility timeout, ack/nack, visibility.\n- Design principles: at-least-once vs exactly-once, idempotency, durable storage, ordering, backpressure.\n- Retries: exponential backoff, jitter, max attempts, retry budgets, transient vs permanent errors, delayed retries, DLQ after max.\n- Idempotency: unique job IDs, idempotency keys, dedupe store, natural idempotency, transactional outbox, idempotent consumer, exactly-once illusion.\n- DLQ: purpose, schema, alerting, replay, retention, manual inspection, avoid infinite loops.\n- Monitoring: metrics (depth, age, latency, success/failure, retry rate, DLQ count, worker health), logs/traces, dashboards/alerts, SLOs.\n- Trade-offs: throughput vs latency, durability vs speed, ordering vs parallelism, at-least-once vs exactly-once, push vs pull, managed vs self-hosted, sync vs async.\n- Practical tutorial: step-by-step implementation with pseudo-code/SQL/Redis/SQS-like. Include schema, worker loop, retry logic, DLQ, monitoring.\n- Example code maybe Python pseudo.\n- Checklist.\n\nNeed be detailed but not too huge. Mention exactly-once is hard; use at-least-once + idempotency. Mention visibility timeout and ack after processing. Mention poison messages. Mention outbox pattern for atomic DB+queue. Mention backpressure and autoscaling. Mention graceful shutdown.\n\nNeed answer in final. Ensure no hidden thinking. Done.# Designing a Reliable Asynchronous Job Queue: Practical Tutorial\n\nAn asynchronous job queue lets a system accept work quickly, return a response to the caller, and process the work later. It is useful for emails, payments, image processing, report generation, webhooks, ETL, notifications, and anything that is slow, unreliable, or bursty.\n\nThe core reliability goal is:\n\n> A job should not be lost silently, should not be processed forever in a tight loop, and should be safe to process more than once.\n\nIn practice, most production queues provide **at-least-once delivery**, not true exactly-once delivery. So the design should assume that a job may be delivered more than once and make processing **idempotent**.\n\n---\n\n## 1. Core architecture\n\nA typical queue system has:\n\n- **Producer**: creates a job and enqueues it.\n- **Queue/broker**: stores pending jobs durably.\n- **Worker**: polls or receives jobs and processes them.\n- **Storage**: database, object store, or external system where the job result is written.\n- **Dead letter queue**: stores jobs that failed repeatedly.\n- **Monitoring/alerting**: tracks queue health.\n\nA simple flow:\n\n```text\nAPI request\n   \u2193\nWrite job to queue\n   \u2193\nReturn 202 Accepted / job ID\n   \u2193\nWorker picks up job\n   \u2193\nWorker processes job\n   \u2193\nWorker acknowledges success\n   \u2193\nIf failure: retry or move to DLQ\n```\n\nImportant design rule: **do not mark a job complete before the work is safely done**. Acknowledge only after the side effect is committed or made idempotent.\n\n---\n\n## 2. Delivery semantics: at-least-once vs exactly-once\n\n### At-least-once\n\nThe broker may deliver a job more than once. This is common and usually the right default.\n\nExample:\n\n1. Worker receives job.\n2. Worker processes it.\n3. Worker crashes before acknowledging.\n4. Broker redelivers the job.\n5. Worker processes it again.\n\nThis is safe if processing is idempotent.\n\n### Exactly-once\n\nTrue exactly-once processing across a database, queue, and external API is hard. Most systems approximate it using:\n\n- Idempotency keys\n- Deduplication tables\n- Transactional outbox\n- Unique constraints\n- Acknowledgement after commit\n\nDo not rely on \u201cexactly-once\u201d as a magic property. Design for at-least-once delivery.\n\n---\n\n## 3. Job model\n\nA job should contain enough information",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 2
+        }
+      ],
+      "wall_s": 3.6859,
+      "aggregate_tok_s": 277.82
+    },
+    {
+      "requests": [
+        {
+          "ttft_s": 0.0774,
+          "elapsed_s": 3.6679,
+          "output_tokens": 1024,
+          "output_per_total_s": 279.18,
+          "estimated_decode_tok_s": 285.2,
+          "finish_reason": "length",
+          "usage": {
+            "prompt_tokens": 49,
+            "total_tokens": 1073,
+            "completion_tokens": 1024,
+            "prompt_tokens_details": null,
+            "reasoning_tokens": 438,
+            "completion_tokens_details": {
+              "reasoning_tokens": 438
+            }
+          },
+          "text": "The user asks for a detailed practical tutorial on designing a reliable asynchronous job queue, covering retries, idempotency, dead letter queues, monitoring, and trade-offs. Need answer with explanation. Need produce final only. Need ensure content accurate.\n\nPlan structure:\n- Intro: what async job queue is for, reliability goals.\n- Core architecture: producers, broker/queue, workers, storage, visibility timeout, ack/nack, visibility.\n- Design principles: at-least-once vs exactly-once, idempotency, durable storage, ordering, backpressure.\n- Retries: exponential backoff, jitter, max attempts, retry budgets, transient vs permanent errors, delayed retries, DLQ after max.\n- Idempotency: unique job IDs, idempotency keys, dedupe store, natural idempotency, transactional outbox, idempotent consumer, exactly-once illusion.\n- DLQ: purpose, schema, alerting, replay, retention, manual inspection, avoid infinite loops.\n- Monitoring: metrics (depth, age, latency, success/failure, retry rate, DLQ count, worker health), logs/traces, dashboards/alerts, SLOs.\n- Trade-offs: throughput vs latency, durability vs speed, ordering vs parallelism, at-least-once vs exactly-once, push vs pull, managed vs self-hosted, sync vs async.\n- Practical tutorial: step-by-step implementation with pseudo-code/SQL/Redis/SQS-like. Include schema, worker loop, retry logic, DLQ, monitoring.\n- Example code maybe Python pseudo.\n- Checklist.\n\nNeed be detailed but not too huge. Mention exactly-once is hard; use at-least-once + idempotency. Mention visibility timeout and ack after processing. Mention poison messages. Mention outbox pattern for atomic DB+queue. Mention backpressure and autoscaling. Mention graceful shutdown.\n\nNeed answer in final. Ensure no hidden thinking. Done.# Designing a Reliable Asynchronous Job Queue: Practical Tutorial\n\nAn asynchronous job queue lets a system accept work quickly, return a response to the caller, and process the work later. It is useful for emails, payments, image processing, report generation, webhooks, ETL, notifications, and anything that is slow, unreliable, or bursty.\n\nThe core reliability goal is:\n\n> A job should not be lost silently, should not be processed forever in a tight loop, and should be safe to process more than once.\n\nIn practice, most production queues provide **at-least-once delivery**, not true exactly-once delivery. So the design should assume that a job may be delivered more than once and make processing **idempotent**.\n\n---\n\n## 1. Core architecture\n\nA typical queue system has:\n\n- **Producer**: creates a job and enqueues it.\n- **Queue/broker**: stores pending jobs durably.\n- **Worker**: polls or receives jobs and processes them.\n- **Storage**: database, object store, or external system where the job result is written.\n- **Dead letter queue**: stores jobs that failed repeatedly.\n- **Monitoring/alerting**: tracks queue health.\n\nA simple flow:\n\n```text\nAPI request\n   \u2193\nWrite job to queue\n   \u2193\nReturn 202 Accepted / job ID\n   \u2193\nWorker picks up job\n   \u2193\nWorker processes job\n   \u2193\nWorker acknowledges success\n   \u2193\nIf failure: retry or move to DLQ\n```\n\nImportant design rule: **do not mark a job complete before the work is safely done**. Acknowledge only after the side effect is committed or made idempotent.\n\n---\n\n## 2. Delivery semantics: at-least-once vs exactly-once\n\n### At-least-once\n\nThe broker may deliver a job more than once. This is common and usually the right default.\n\nExample:\n\n1. Worker receives job.\n2. Worker processes it.\n3. Worker crashes before acknowledging.\n4. Broker redelivers the job.\n5. Worker processes it again.\n\nThis is safe if processing is idempotent.\n\n### Exactly-once\n\nTrue exactly-once processing across a database, queue, and external API is hard. Most systems approximate it using:\n\n- Idempotency keys\n- Deduplication tables\n- Transactional outbox\n- Unique constraints\n- Acknowledgement after commit\n\nDo not rely on \u201cexactly-once\u201d as a magic property. Design for at-least-once delivery.\n\n---\n\n## 3. Job model\n\nA job should contain enough information",
+          "prompt": "Explain how to design a reliable asynchronous job queue. Discuss retries, idempotency, dead letter queues, monitoring, and trade-offs. Write a detailed practical tutorial.",
+          "iteration": 3
+        }
+      ],
+      "wall_s": 3.6679,
+      "aggregate_tok_s": 279.18
+    }
+  ]
+}
