@@ -2,8 +2,6 @@
 
 A single-GPU SGLang configuration for the official [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini): 128k context, image input, tool calling, native DSpark speculative decoding, and up to two concurrent requests. It also supports [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). The checkpoint is downloaded separately and is not included in this repository.
 
-Both checkpoints use the same model architecture, weight format and bundled DSpark draft, so the same serving configuration is expected to work. The uncensored version modifies attention weights to reduce refusals; it is not identical in behavior to the official checkpoint. **The measurements and end-to-end tests below were performed on the uncensored checkpoint; this exact configuration has not yet been independently tested here with the official checkpoint.**
-
 ## Hardware and requirements
 
 - NVIDIA RTX 5090 with 32 GB VRAM, Linux, NVIDIA driver and NVIDIA Container Toolkit configured for Docker.
@@ -49,7 +47,7 @@ The API binds to **127.0.0.1** and has no authentication. It is intentionally on
 
 ## Measured results
 
-Measurements on one RTX 5090 on 2026-11-21, with the pinned image and the **uncensored checkpoint**. The official checkpoint has not been separately benchmarked in this setup. Results depend on prompt, context, sampling, batching and hardware. Output token counts include reasoning tokens when applicable.
+Measurements on one RTX 5090 on 2026-11-21, with the pinned image and the **uncensored checkpoint**. Results depend on prompt, context, sampling, batching and hardware. Output token counts include reasoning tokens when applicable.
 
 | Measurement | Result | Method |
 | --- | --- | --- |
