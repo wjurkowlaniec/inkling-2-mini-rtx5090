@@ -113,3 +113,17 @@ To reproduce with the official Linux archive and a converted model, use the corr
   -t conv,struct,prose -p 16384,65536 -r 2 --seed 42 -o json \
   -- --max-context 131072 --kv fp8 > basalt-benchmark.json
 ```
+
+## Official checkpoint comparison — 2026-11-25
+
+The [Basalt pack converted from the official Thinking Machines checkpoint](https://huggingface.co/jesdga/Inkling-2-Mini-Basalt), `Inkling-2-Mini-NVFP4-MX8.basalt`, SHA-256 `28ec70723feaa037942a02f55b9d5e898276f3e62a3b1fa083745f932a041b99`, was run with the same Basalt v0.5.7, GPU, FP8 KV, DSpark and benchmark command as above. It is a separately distributed, converted pack, not the original safetensors. The uncensored pack was locally converted using the v0.5.7 converter. Two repetitions, seed 42, one engine sequence; no Vision or parallel requests in this engine measurement.
+
+| Test | Official pack mean | Uncensored pack mean |
+| --- | ---: | ---: |
+| Conversation | 360.1 tok/s | 369.8 tok/s |
+| Structured JSON | 711.3 tok/s | 706.5 tok/s |
+| Prose | 318.9 tok/s | 321.2 tok/s |
+| PP 16k setting | 19,196 tok/s | 19,168 tok/s |
+| PP 65k setting | 14,583 tok/s | 14,558 tok/s |
+
+These speed figures come from generated content that can differ between checkpoints. The JSON fixture is unusually predictable. The six short agent tasks passed limited checks both singly and in pairs. Through the existing authenticated proxy, an image, a tool round-trip with streamed answer, and two simultaneous streams passed. A synthetic image-and-text request with 130,214 input tokens returned its correct marker and image details; two separate 60,038-token requests returned their keys concurrently. These are narrow checks, not broad accuracy, Hermes-session or stability guarantees. Raw results: [standard](basalt-official-standard.json), [tasks one](basalt-official-agent-c1.json), [tasks two](basalt-official-agent-c2.json), [proxy](basalt-official-proxy-results.json), [long](basalt-official-long-validation.json).

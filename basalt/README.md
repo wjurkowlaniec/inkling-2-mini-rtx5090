@@ -2,7 +2,7 @@
 
 This configuration uses Basalt v0.5.7 with FP8 KV, Vision, the built-in DSpark drafter and two slots, each configured for 131,072 total input + output tokens. Measurements, conversion precision and validation limits: [benchmark report](../benchmarks/basalt/README.md). The server uses the same `inkling` model alias and port 6020 as the SGLang setup; run only one GPU server at a time.
 
-The official and uncensored checkpoints are supported by the configuration. Our end-to-end tests used the uncensored checkpoint. Conversion rounds dense projections to Q8_0 and the engine uses FP8 KV, so numerical behavior is not identical to SGLang's BF16 path. Validate your agent and workloads before relying on it. The first start of a model can take time and interrupted requests are not resumed by the server.
+The official and uncensored checkpoints are supported by the configuration. Both checkpoints passed narrow Vision, tool-calling and concurrent long-context checks on 2026-11-25. Conversion rounds dense projections to Q8_0 and the engine uses FP8 KV, so numerical behavior is not identical to SGLang's BF16 path. Validate your agent and workloads before relying on it. The first start of a model can take time and interrupted requests are not resumed by the server.
 
 ## Prepare files
 

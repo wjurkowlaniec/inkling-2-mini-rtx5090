@@ -1,6 +1,23 @@
 # Inkling 2 Mini on RTX 5090
 
-Run [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) on one RTX 5090 with 128k context, Vision and two concurrent requests. **For generation speed, start with the [recommended Basalt setup](basalt/README.md)**; this repository also provides the SGLang + DFlash2 configuration below. Both configurations can use [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). The reported tests used the uncensored checkpoint. Checkpoints are downloaded separately and are not included in this repository.
+Run [Thinking Machines Inkling 2 Mini](https://huggingface.co/thinkingmachines/Inkling-2-Mini) on one RTX 5090 with 128k context, Vision and two concurrent requests. **For generation speed, start with the [recommended Basalt setup](basalt/README.md)**; this repository also provides the SGLang + DFlash2 configuration below. Both configurations can use [OpenUncensored/Inkling-2-Mini-Uncensored](https://huggingface.co/OpenUncensored/Inkling-2-Mini-Uncensored). Both checkpoints have been tested on Basalt; the SGLang measurements below used the uncensored checkpoint. Checkpoints are downloaded separately and are not included in this repository.
+
+**Results and configuration verified on 2026-11-25.** Hardware, software and model versions are recorded with each result.
+
+## Configurations tested — 2026-11-25
+
+These measurements are specific to one RTX 5090 and the linked workloads; output contents and measurement methods differ. See the linked reports before comparing numbers.
+
+| Configuration | Result and decision |
+| --- | --- |
+| Basalt 0.5.7, DSpark, FP8 KV, 2 × 128k, Vision | **Recommended for generation speed.** On the uncensored pack, single-sequence engine fixtures averaged 370 tok/s conversation, 706 structured JSON and 321 prose. Two long requests, Vision and tools passed narrow checks. [Details](benchmarks/basalt/README.md) |
+| Basalt FP16 KV | The same short chat fixture measured 377 vs 388 estimated decode tok/s for FP8; long Vision and concurrent retrieval passed. FP8 remains the speed choice. [Details](benchmarks/basalt/README.md#fp8-versus-fp16-kv-cache) |
+| Basalt DSpark caps 4, 6, 8 | No reliable gain over default 8 in the short single- and two-request trials. [Details](benchmarks/basalt/README.md#dspark-speculation-cap-experiment) |
+| SGLang + DFlash2, BF16 KV, 2 shared-cache slots, Vision | Alternative retaining the original checkpoint's dense weights. Approximately 285 estimated decode tok/s on one short chat fixture vs 388 with Basalt; results depend on different generated text and numerical precision. [Details](benchmarks/basalt/README.md#identical-chat-prompts-natural-eos) |
+| SGLang DFlash2 widths 6, 8, 12 | Width 8 led on tested prose and code; width 12 led only on a repetitive synthetic fixture. [Details](#dflash2-verification-width-experiment-2026-11-25) |
+| SGLang, 3 slots | Ran short and medium synthetic requests; not qualified for sustained Vision use. Shared KV limits simultaneous long contexts. [Context results](benchmarks/results/dflash2-rtx5090-c3-experimental-2026-11-25.json) |
+
+The structured JSON fixture is unusually predictable and is **not** a general chat speed. Basalt quantizes dense projections to Q8_0 and uses FP8 KV; SGLang's BF16 KV setup has different numerical behavior. Both the official and uncensored checkpoints passed the documented Basalt checks, which are not exhaustive quality evaluations.
 
 ## SGLang alternative: hardware and requirements
 
@@ -113,7 +130,7 @@ A separate [sampling check](benchmarks/results/dflash2-sampling-2026-11-25.json)
 
 On the converted uncensored checkpoint, Basalt's standard single-sequence engine benchmark measured a two-run mean of **370 tok/s conversation, 706 tok/s structured JSON and 321 tok/s prose**. JSON is a highly predictable 8,192-token fixture, not typical chat; this benchmark does not exercise Vision or concurrent requests. See the [full benchmark and reproduction command](benchmarks/basalt/README.md#basalt-standard-engine-benchmark) and the separate concurrent and Vision tests.
 
-### Experimental Basalt comparison
+### Basalt and SGLang comparison
 
 A separate [Basalt experiment](benchmarks/basalt/README.md) converted the uncensored checkpoint, enabled Vision and two 128k slots, and tested one and two requests. One short chat prompt showed approximately 388 vs 285 estimated decode tok/s for Basalt vs this SGLang setup; paired output over batch time was approximately 494 vs 469 tok/s. The engines use different drafters and numerical precision, and the few requests do not establish equal quality or a general speedup. The recommended Basalt setup is documented separately; the root Compose file remains the SGLang alternative.
 
