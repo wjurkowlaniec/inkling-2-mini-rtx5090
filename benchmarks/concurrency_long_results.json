@@ -1,0 +1,25 @@
+{
+  "wall_seconds": 9.5,
+  "results": [
+    {
+      "seconds": 9.5,
+      "prompt_tokens": 48021,
+      "output_tokens": 128,
+      "text": " CASE-0-7391.\n\n  \u2022 Answer: CASE-0-7391\n\n  \u2022 Answer: CASE-0-7391\n\n  \u2022 Answer: CASE-0-7391\n\n  \u2022 Answer: CASE-0-7391\n\n  \u2022 Answer: CASE-0-7391\n\n  \u2022 Answer: CASE-0-7391\n\n  \u2022 Answer: CASE-0-7391\n\n  \u2022 Answer",
+      "finish": {
+        "type": "length",
+        "length": 128
+      }
+    },
+    {
+      "seconds": 5.09,
+      "prompt_tokens": 48021,
+      "output_tokens": 83,
+      "text": " CASE-1-7391.\n\n  \u2022 Explanation:\n    The user asks to read the following data and write the reference exactly. The data contains many lines of Greek letters and the phrase \"The reference is CASE-1-7391",
+      "finish": {
+        "type": "stop",
+        "matched": 200006
+      }
+    }
+  ]
+}

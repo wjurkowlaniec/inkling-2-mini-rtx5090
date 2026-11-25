@@ -1,0 +1,6 @@
+models/
+cache/
+.env
+__pycache__/
+*.pyc
+*.local.jsonl

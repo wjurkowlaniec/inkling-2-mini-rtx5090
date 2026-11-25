@@ -1,0 +1,29 @@
+{
+  "sequential": [
+    {
+      "elapsed": 2.926,
+      "tokens": 512,
+      "spec_accept": 1.9922178988326849
+    },
+    {
+      "elapsed": 2.907,
+      "tokens": 512,
+      "spec_accept": 1.9922178988326849
+    }
+  ],
+  "sequential_wall_s": 5.832,
+  "parallel": [
+    {
+      "elapsed": 2.928,
+      "tokens": 512,
+      "spec_accept": 2.2555066079295156
+    },
+    {
+      "elapsed": 2.928,
+      "tokens": 512,
+      "spec_accept": 2.2555066079295156
+    }
+  ],
+  "parallel_wall_s": 2.928,
+  "improvement": 1.99
+}
